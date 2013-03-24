@@ -1,13 +1,15 @@
-var request = require('request'),
-    statusCodes = require('http').STATUS_CODES,
+var http = require('http'),
     fs = require('fs'),
     util = require('util'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    
+    statusCodes = http.STATUS_CODES;
+
  
 /*
-    Ping Constructor
+    Monitor Constructor
 */
-function Ping (opts) {
+function Monitor (opts) {
     // holds website to be monitored
     this.website = '';
  
@@ -16,6 +18,7 @@ function Ping (opts) {
  
     // interval handler
     this.handle = null;
+    
  
     // initialize the app
     this.init(opts);
@@ -27,7 +30,7 @@ function Ping (opts) {
 /*
     Inherit from EventEmitter
 */
-util.inherits(Ping, EventEmitter);
+util.inherits(Monitor, EventEmitter);
 
 
 
@@ -35,7 +38,7 @@ util.inherits(Ping, EventEmitter);
     Methods
 */
  
-Ping.prototype.init = function (opts) {
+Monitor.prototype.init = function (opts) {
     var timeout = opts.timeout || 15,
         website = opts.website;
         
@@ -57,7 +60,7 @@ Ping.prototype.init = function (opts) {
 
 
 
-Ping.prototype.start = function () {
+Monitor.prototype.start = function () {
     var self = this,
         time = Date.now();
  
@@ -72,7 +75,7 @@ Ping.prototype.start = function () {
 
 
 
-Ping.prototype.stop = function () {
+Monitor.prototype.stop = function () {
     clearInterval(this.handle);
     this.handle = null;
     
@@ -82,38 +85,40 @@ Ping.prototype.stop = function () {
 
 
 
-Ping.prototype.ping = function () {
-    var self = this, currentTime = Date.now();
+Monitor.prototype.ping = function () {
+    var self = this, currentTime = Date.now(), req;
  
-    try {
-        // send request
-        request(self.website, function (error, res, body) {
+    req = http.request(self.website, function (res) {
         
-            // Website is up
-            if (!error && res.statusCode === 200) {
-                self.isOk();
-            }
+        // Website is up
+        if (res.statusCode === 200) {
+            self.isOk();
+        }
  
-            // No error but website not ok
-            else if (!error) {
-                self.isNotOk(res.statusCode);
-            }
- 
-            // Loading error
-            else {
-                self.isNotOk();
-            }
-        });
-    }
-    catch (err) {
-        this.emit('error', {msg: 'The Request module failed to load your website'});
-    }
+        // No error but website not ok
+        else {
+            self.isNotOk(res.statusCode);
+        }
+    });
+
+    req.on('error', function(err) {
+        try {
+            var data = self.responseData(404, statusCodes[404 +'']);
+            self.emit('error', data);
+        } catch (error) {
+            console.log('Uncaught Error Event for ' + self.website);
+            console.log('Monitor stopped');
+            self.stop();
+        }
+    });
+    
+    req.end();
 };
  
  
  
  
-Ping.prototype.isOk = function () {
+Monitor.prototype.isOk = function () {
     var data = this.responseData(200, 'OK');
     
     this.emit('up', data);
@@ -122,7 +127,7 @@ Ping.prototype.isOk = function () {
 
 
 
-Ping.prototype.isNotOk = function (statusCode) {
+Monitor.prototype.isNotOk = function (statusCode) {
     var msg = statusCodes[statusCode + ''],
         data = this.responseData(statusCode, msg);
 
@@ -133,7 +138,7 @@ Ping.prototype.isNotOk = function (statusCode) {
 
 
 
-Ping.prototype.responseData = function (statusCode, msg) {
+Monitor.prototype.responseData = function (statusCode, msg) {
     var data = Object.create({}), time = Date.now();
  
     data.website = this.website;
@@ -146,7 +151,7 @@ Ping.prototype.responseData = function (statusCode, msg) {
 
 
 
-Ping.prototype.getFormatedDate = function (time) {
+Monitor.prototype.getFormatedDate = function (time) {
     var currentDate = new Date(time);
     
     currentDate = currentDate.toISOString();
@@ -159,5 +164,5 @@ Ping.prototype.getFormatedDate = function (time) {
 
 
 
-module.exports = Ping;
+module.exports = Monitor;
 

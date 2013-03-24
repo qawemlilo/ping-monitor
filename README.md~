@@ -1,6 +1,6 @@
 # Website uptime Event Emitter
 
-Ping-monitor (Node-monitot) is a tool for monitoring your website's uptime. If the website is up or down an event is emitted. This module is extracted from [Node Ping](https://github.com/qawemlilo/node-ping)
+Ping-monitor (Node-Monitor) is a tool for monitoring your website's uptime. If the website is up or down an event is emitted. This module is extracted from [Node Ping](https://github.com/qawemlilo/node-ping), an uptime app I wrote recently.
 
 # Installation
 ```
@@ -67,6 +67,12 @@ sitex-monitor.on('up', function (res) {
 
 sitex-monitor.on('down', function (res) {
     console.log('Shit!! ' + res.website + ' is down!');
+});
+
+
+// this event is required to be handled in all Node-Monitor instances
+sitex-monitor.on('error', function (res) {
+    console.log('Oh Shit!! An unexpected error occured trying to load ' + res.website + '!');
 });
 ```
 

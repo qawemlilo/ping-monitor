@@ -12,9 +12,6 @@
     "uptime",
     "website"
   ],
-  "dependencies": {
-    "request": "~2.16.6"
-  },
   "author": "Qawelesizwe Mlilo",
   "license": "MIT",
   "engines": {

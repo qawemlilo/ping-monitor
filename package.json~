@@ -1,6 +1,6 @@
 {
   "name": "ping-monitor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Website uptime Event Emitter",
   "main": "app.js",
   "repository": {
@@ -12,9 +12,6 @@
     "uptime",
     "website"
   ],
-  "dependencies": {
-    "request": "~2.16.6"
-  },
   "author": "Qawelesizwe Mlilo",
   "license": "MIT",
   "engines": {
