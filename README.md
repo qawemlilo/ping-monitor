@@ -23,7 +23,7 @@ sitex-monitor.on(event, callback(response) {
 ## Options
 
 - `website` (* required) - The url of the website to be monitored.
-- `timeout` (defaults to 15) - interval for checking website availability in seconds.
+- `timeout` (defaults to 15) - interval for checking website availability in minutes.
 
 
 
