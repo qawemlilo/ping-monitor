@@ -1,6 +1,6 @@
 {
   "name": "ping-monitor",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Website uptime Event Emitter",
   "main": "app.js",
   "scripts": {

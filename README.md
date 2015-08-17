@@ -23,7 +23,7 @@ myWebsite.on(event, callback(response) {
 ## Options
 
 - `website` (* required) - The url of the website to be monitored.
-- `timeout` (defaults to 15) - interval for checking website availability in minutes.
+- `timeout` (defaults to 15) - time interval(in minutes) for checking website availability.
 
 
 
@@ -39,7 +39,7 @@ myWebsite.on(event, callback(response) {
 ## response object
 
 - `object.website` - website being monitored.
-- `object.time` - time in seconds.
+- `object.time` - time in milliseconds.
 - `object.responseCode` - http response code.
 - `object.responseMessage` -  http response code message.
 
