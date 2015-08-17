@@ -12,9 +12,9 @@ npm install ping-monitor
 ```
 var Monitor = require('ping-monitor');
 
-var sitex-monitor = new Monitor(options);
+var myWebsite = new Monitor(options);
 
-sitex-monitor.on(event, callback(response) {
+myWebsite.on(event, callback(response) {
     // Do something with the response 
 });
 ```
@@ -39,7 +39,7 @@ sitex-monitor.on(event, callback(response) {
 ## response object
 
 - `object.website` - website being monitored.
-- `object.time` - time in milliseconds.
+- `object.time` - time in seconds.
 - `object.responseCode` - http response code.
 - `object.responseMessage` -  http response code message.
 
@@ -50,35 +50,35 @@ sitex-monitor.on(event, callback(response) {
 var Monitor = require('ping-monitor');
 
 
-var sitex-monitor = new Monitor({
-    website: 'http://www.rflab.co.za',
+var myWebsite = new Monitor({
+    website: 'http://www.ragingflame.co.za',
     timeout: 10
 });
 
 
-sitex-monitor.on('error', function (msg) {
+myWebsite.on('error', function (msg) {
     console.log(msg);
 });
 
 
-sitex-monitor.on('up', function (res) {
+myWebsite.on('up', function (res) {
     console.log('Yay!! ' + res.website + ' is up.');
 });
 
 
-sitex-monitor.on('down', function (res) {
-    console.log('Shit!! ' + res.website + ' is down! ' + res.statusMessage);
+myWebsite.on('down', function (res) {
+    console.log('Oh Snap!! ' + res.website + ' is down! ' + res.statusMessage);
 });
 
 
 // this event is required to be handled in all Node-Monitor instances
-sitex-monitor.on('error', function (res) {
-    console.log('Oh Shit!! An unexpected error occured trying to load ' + res.website + '!');
-    sitex-monitor.stop();
+myWebsite.on('error', function (res) {
+    console.log('Oh Snap!! An unexpected error occured trying to load ' + res.website + '!');
+    myWebsite.stop();
 });
 
 
-sitex-monitor.on('stop', function (website) {
+myWebsite.on('stop', function (website) {
     console.log(website + ' monitor has stopped.');
 });
 ```

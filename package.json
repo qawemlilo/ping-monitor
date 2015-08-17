@@ -1,8 +1,11 @@
 {
   "name": "ping-monitor",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Website uptime Event Emitter",
   "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/qawemlilo/node-monitor.git"

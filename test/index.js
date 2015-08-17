@@ -68,7 +68,7 @@ ping3.on('down', function (res) {
 });
 
 ping3.on('error', function (res) {
-    console.log('Oh Shit!! An unexpected error occured trying to load ' + res.website + "! \n");
+    console.log('Oh Snap!! An unexpected error occured trying to load ' + res.website + "! \n");
     ping3.stop();
 });
 
