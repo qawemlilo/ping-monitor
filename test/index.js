@@ -3,7 +3,7 @@ var Monitor = require('../lib/monitor');
 
 
 // website has a redirect, should emit down and show status message
-var ping = new Monitor({website: 'http://www.rflab.co.za', timeout: 0.2});
+var ping = new Monitor({website: 'http://www.rflab.co.za', interval: 0.2});
 
 ping.on('up', function (res) {
     console.log(res.website + " is up \n");
@@ -29,7 +29,7 @@ ping.on('stop', function (website) {
 
 
 // website does now exist, monitor should emit down
-var ping2 = new Monitor({website: 'http://www.rflabb.co.za', timeout: 0.2});
+var ping2 = new Monitor({website: 'http://www.rflabb.co.za', interval: 0.2});
 
 ping2.on('up', function (res) {
     console.log(res.website + " is up \n");
@@ -55,7 +55,7 @@ ping2.on('stop', function (website) {
 
 
 // monitor should emit up
-var ping3 = new Monitor({website: 'http://www.ragingflame.co.za', timeout: 0.2});
+var ping3 = new Monitor({website: 'http://www.ragingflame.co.za', interval: 0.2});
 
 ping3.on('up', function (res) {
     console.log(res.website + " is up \n");

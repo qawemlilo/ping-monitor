@@ -23,7 +23,7 @@ myWebsite.on(event, callback(response) {
 ## Options
 
 - `website` (* required) - The url of the website to be monitored.
-- `timeout` (defaults to 15) - time interval(in minutes) for checking website availability.
+- `interval` (defaults to 15) - time interval(in minutes) for checking website availability.
 
 
 
@@ -52,7 +52,7 @@ var Monitor = require('ping-monitor');
 
 var myWebsite = new Monitor({
     website: 'http://www.ragingflame.co.za',
-    timeout: 10
+    interval: 10
 });
 
 
