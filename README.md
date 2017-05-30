@@ -1,5 +1,7 @@
 # Website uptime Event Emitter
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/qawemlilo/node-monitor.svg)](https://greenkeeper.io/)
+
 Ping-monitor (Node-Monitor) is a tool for monitoring your website's uptime. If the website is up or down an event is emitted. This module is extracted from [Node Ping](https://github.com/qawemlilo/node-ping), an uptime app I wrote recently.
 
 # Installation
