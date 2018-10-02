@@ -11,10 +11,10 @@ npm install ping-monitor
 
 
 ### How to use
-```
-var Monitor = require('ping-monitor');
+```javascript
+const Monitor = require('ping-monitor');
 
-var myWebsite = new Monitor(options);
+const myWebsite = new Monitor(options);
 
 myWebsite.on(event, function(response) {
     // Do something with the response
