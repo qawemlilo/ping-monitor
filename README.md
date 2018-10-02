@@ -1,14 +1,16 @@
 # Website uptime Event Emitter
 
-Ping-monitor (Node-Monitor) is a tool for monitoring your website's uptime. If the website is up or down an event is emitted. This module is extracted from [Node Ping](https://github.com/qawemlilo/node-ping), an uptime app I wrote recently.
+Ping-monitor (Node-Monitor) is a tool for monitoring your website's uptime. If the website is up or down an event is emitted.
 
-# Installation
+Also see [Node Ping](https://github.com/qawemlilo/node-ping).
+
+### Installation
 ```
 npm install ping-monitor
 ```
 
 
-# How to use
+### How to use
 ```
 var Monitor = require('ping-monitor');
 
@@ -20,23 +22,22 @@ myWebsite.on(event, function(response) {
 ```
 
 
-## Options
+### Options
 
 - `website` (* required) - The url of the website to be monitored.
 - `interval` (defaults to 15) - time interval(in minutes) for checking website availability.
 
 
 
-## Emitted Events
+### Emitted Events
 
 - `up` - All is good website is up.
 - `down` - Not good, website is down.
-- `error` - Bad, http request module cannot load website.
 - `stop` - Fired when the monitor has stopped.
 
 
 
-## response object
+### response object
 
 - `object.website` - website being monitored.
 - `object.time` - time in milliseconds.
@@ -45,19 +46,16 @@ myWebsite.on(event, function(response) {
 
 
 
-## Example
-```
-var Monitor = require('ping-monitor');
+### Example
+```javascript
+"use strict";
+
+const Monitor = require('ping-monitor');
 
 
-var myWebsite = new Monitor({
+const myWebsite = new Monitor({
     website: 'http://www.ragingflame.co.za',
     interval: 10
-});
-
-
-myWebsite.on('error', function (msg) {
-    console.log(msg);
 });
 
 
@@ -71,17 +69,18 @@ myWebsite.on('down', function (res) {
 });
 
 
-// this event is required to be handled in all Node-Monitor instances
-myWebsite.on('error', function (res) {
-    console.log('Oh Snap!! An unexpected error occured trying to load ' + res.website + '!');
-    myWebsite.stop();
-});
-
-
 myWebsite.on('stop', function (website) {
     console.log(website + ' monitor has stopped.');
 });
 ```
+
+### Change log
+
+#### v0.2.0
+
+  - Code cleanup and upgrade to ES5
+  - Removed the `error` event - now being handled internally
+  - Bug fixed: [Unreachable resource not handled #9](https://github.com/qawemlilo/node-monitor/issues/9)
 
 
 ## Testing
@@ -90,11 +89,11 @@ node test
 ```
 
 
-## License
+### License
 
 (MIT License)
 
-Copyright (c) 2013 Qawelesizwe Mlilo <qawemlilo@gmail.com>
+Copyright (c) 2013 - 2018 Qawelesizwe Mlilo <qawemlilo@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
