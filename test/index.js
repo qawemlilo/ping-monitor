@@ -67,6 +67,20 @@ describe('Monitor', function () {
   });
 
 
+  describe('#error', function() {
+    it('should emit error', function(done) {
+      // website has a redirect, should emit down and show status message
+      let ping3 = new Monitor({interval: 0.1});
+
+      ping3.on('error', function (error) {
+        error.should.be.an.instanceOf(Error);
+
+        ping3.stop();
+        done();
+      });
+    });
+  });
+
   after(function (done) {
     done();
     process.exit();

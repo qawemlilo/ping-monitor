@@ -34,6 +34,7 @@ myWebsite.on(event, function(response) {
 - `up` - All is good website is up.
 - `down` - Not good, website is down.
 - `stop` - Fired when the monitor has stopped.
+- `error` - Fired when there's an error within the module
 
 
 
@@ -72,9 +73,19 @@ myWebsite.on('down', function (res) {
 myWebsite.on('stop', function (website) {
     console.log(website + ' monitor has stopped.');
 });
+
+
+myWebsite.on('error', function (website) {
+    console.log(website + ' monitor has stopped.');
+});
 ```
 
 ### Change log
+
+#### v0.2.1
+
+  - Brought back `error` event - required for handling module usage related errors
+
 
 #### v0.2.0
 
