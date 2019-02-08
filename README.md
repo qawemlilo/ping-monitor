@@ -1,6 +1,6 @@
-# Website uptime Event Emitter
+# Uptime Event Emitter
 
-Ping-monitor (Node-Monitor) is a tool for monitoring your website's uptime. If the website is up or down an event is emitted.
+Ping-monitor is an uptime event emitter for http and tcp servers.
 
 Also see [Node Ping](https://github.com/qawemlilo/node-ping).
 
@@ -24,9 +24,10 @@ myWebsite.on(event, function(response) {
 
 ### Options
 
-- `website` (* required) - The url of the website to be monitored.
-- `interval` (defaults to 15) - time interval(in minutes) for checking website availability.
-
+- `website` - The url of the website to be monitored (required is monitoring a website).
+- `address` - Server address to be monitored (required if monitoring tcp server).
+- `port` - Server port (required if monitoring tcp server).
+- `interval` (defaults to 15) - time interval (in minutes) for polling requests.
 
 
 ### Emitted Events
@@ -41,13 +42,15 @@ myWebsite.on(event, function(response) {
 ### response object
 
 - `object.website` - website being monitored.
-- `object.time` - time in milliseconds.
-- `object.responseCode` - http response code.
+- `object.address` - server address being monitored.
+- `object.port` - server port being monitored.
+- `object.responseTime` - time in milliseconds.
+- `object.time` - (aka responseTime) request response time.
 - `object.responseMessage` -  http response code message.
+- `object.responseTime` - response time in milliseconds.
 
 
-
-### Example
+### Website Example
 ```javascript
 "use strict";
 
@@ -56,7 +59,7 @@ const Monitor = require('ping-monitor');
 
 const myWebsite = new Monitor({
     website: 'http://www.ragingflame.co.za',
-    interval: 10
+    interval: 10 // minutes
 });
 
 
@@ -75,16 +78,53 @@ myWebsite.on('stop', function (website) {
 });
 
 
-myWebsite.on('error', function (website) {
-    console.log(website + ' monitor has stopped.');
+myWebsite.on('error', function (error) {
+    console.log(error);
 });
 ```
 
+### TCP Example
+```javascript
+"use strict";
+
+const Monitor = require('ping-monitor');
+
+
+const myserver = new Monitor({
+    address: '162.13.124.139',
+    port: 8080,
+    interval: 5 // minutes
+});
+
+
+myserver.on('up', function (res) {
+    console.log('Yay!! ' + res.address + ':' + res.port + ' is up.');
+});
+
+
+myserver.on('down', function (res) {
+    console.log('Oh Snap!! ' + res.address + ':' + res.port + ' is down! ');
+});
+
+
+myserver.on('stop', function (address) {
+    console.log(address + ' monitor has stopped.');
+});
+
+
+myserver.on('error', function (error) {
+    console.log(error);
+});
+```
+
+
 ### Change log
 
-#### v0.2.1
+#### v0.3.0
 
   - Brought back `error` event - required for handling module usage related errors
+  - Added `responseTime` to the response object
+  - Added support for tcp servers
 
 
 #### v0.2.0

@@ -1,87 +1,102 @@
 "use strict";
 
-const should = require('should')();
-const express = require('express');
+const expect = require('chai').expect;
+const nock = require('nock');
 const Monitor = require('../lib/monitor');
+let tcpServer = null;
 
-let app = null;
 
+describe('Monitor', () => {
+  before(() => {
+    nock('https://ragingflame.co.za')
+      .get('/must-pass')
+      .reply(200, "page is up");
 
-describe('Monitor', function () {
+    nock('https://ragingflame.co.za')
+      .get('/must-fail')
+      .reply(500, "page is up");
 
-  before(function (done) {
-    app = express();
+    tcpServer = require('./tcpServer')
+  });
 
-    app.get('/must-fail', function(req, res) {
-      res.status(500).json({ error: 'Server error' });
+  it('should pass', (done) => {
+
+    let ping = new Monitor({
+      website: 'https://ragingflame.co.za/must-pass',
+      interval: 0.1
     });
 
-    app.get('/must-pass', function(req, res) {
-      res.status(200).json({ name: 'tobi' });
+    ping.on('up', function (res) {
+      expect(res.statusCode).to.equal(200);
+      ping.stop();
+      done();
     });
 
-    app.listen(3009, function () {
-      console.log('Test app listening on port 3009!');
+    ping.on('down', function (res) {
+      expect(res.statusCode).to.equal(200);
+      ping.stop();
+      done(new Error(res.statusMessage));
+    });
+  });
+
+  it('should fail', (done) => {
+
+    let ping = new Monitor({
+      website: 'https://ragingflame.co.za/must-fail',
+      interval: 0.1
+    });
+
+    ping.on('up', function (res) {
+      expect(res.statusCode).to.equal(500);
+      ping.stop();
+      done(new Error(res.statusMessage));
+    });
+
+    ping.on('down', function (res) {
+      expect(res.statusCode).to.equal(500);
+      ping.stop();
       done();
     });
   });
 
-  describe('#up', function() {
-    it('should be ok', function(done) {
-      // website has a redirect, should emit down and show status message
-      let ping = new Monitor({website: 'http://localhost:3009/must-pass', interval: 0.1});
+  it('should handle the stop event', (done) => {
 
-      ping.on('up', function (res) {
-          res.website.should.be.eql('http://localhost:3009/must-pass');
-          res.statusCode.should.be.eql(200);
-          ping.stop();
-          done();
-      });
-
-      ping.on('down', function (res) {
-          ping.stop();
-          done(res);
-      });
+    let ping = new Monitor({
+      website: 'https://ragingflame.co.za/must-pass',
+      interval: 0.1
     });
+
+    ping.on('stop', function (res) {
+      expect(res).to.equal('https://ragingflame.co.za/must-pass');
+      done();
+    });
+
+    ping.stop();
   });
 
-  describe('#down', function() {
-    it('should be not be down', function(done) {
-      // website has a redirect, should emit down and show status message
-      let ping2 = new Monitor({website: 'http://localhost:3009/must-fail', interval: 0.1});
+  it('should connect to tcp', (done) => {
 
-      ping2.on('up', function (res) {
-        res.website.should.be.eql('http://localhost:3009/must-fail');
-        res.statusCode.should.be.eql(500);
-
-        ping2.stop();
-        done(res);
-      });
-
-      ping2.on('down', function (res) {
-        res.website.should.be.eql('http://localhost:3009/must-fail');
-        ping2.stop();
-        done();
-      });
+    let ping = new Monitor({
+      address: '127.0.0.1',
+      port: 8124,
+      interval: 0.1
     });
-  });
 
+    ping.on('up', function (res) {
+      expect(res.statusCode).to.equal(200);
+      ping.stop();
+      done();
+    });
 
-  describe('#error', function() {
-    it('should emit error', function(done) {
-      // website has a redirect, should emit down and show status message
-      let ping3 = new Monitor({interval: 0.1});
-
-      ping3.on('error', function (error) {
-        error.should.be.an.instanceOf(Error);
-
-        ping3.stop();
-        done();
-      });
+    ping.on('down', function (res) {
+      expect(res.statusCode).to.equal(200);
+      ping.stop();
+      done(new Error(res.statusMessage));
     });
   });
 
   after(function (done) {
+    tcpServer.close();
     done();
     process.exit();
   });
