@@ -1,8 +1,7 @@
 # Uptime Event Emitter
 
-Ping-monitor is an uptime event emitter for http and tcp servers.
+An uptime event emitter for http and tcp servers.
 
-Also see [Node Ping](https://github.com/qawemlilo/node-ping).
 
 ### Installation
 ```
@@ -16,7 +15,7 @@ const Monitor = require('ping-monitor');
 
 const myWebsite = new Monitor(options);
 
-myWebsite.on(event, function(response) {
+myWebsite.on(event, function(response, state) {
     // Do something with the response
 });
 ```
@@ -49,6 +48,16 @@ myWebsite.on(event, function(response) {
 - `object.responseMessage` -  http response code message.
 - `object.responseTime` - response time in milliseconds.
 
+### state object
+
+- `object.created_at` <Date.now()> - monitor creation date.
+- `object.isUp` <Boolean> - current uptime status of the monitor.
+- `object.port` <Integer> - server port.
+- `object.host` <String> - server / website address.
+- `object.totalRequests` <Integer> - total requests made.
+- `object.lastDownTime` <Date.now()> - time of last downtime.
+- `object.lastRequest` <Date.now()> - time of last request.
+- `object.interval` <Integer> - polling interval in minutes
 
 ### Website Example
 ```javascript
@@ -57,28 +66,28 @@ myWebsite.on(event, function(response) {
 const Monitor = require('ping-monitor');
 
 
-const myWebsite = new Monitor({
+const myMonitor = new Monitor({
     website: 'http://www.ragingflame.co.za',
     interval: 10 // minutes
 });
 
 
-myWebsite.on('up', function (res) {
+myMonitor.on('up', function (res, state) {
     console.log('Yay!! ' + res.website + ' is up.');
 });
 
 
-myWebsite.on('down', function (res) {
+myMonitor.on('down', function (res) {
     console.log('Oh Snap!! ' + res.website + ' is down! ' + res.statusMessage);
 });
 
 
-myWebsite.on('stop', function (website) {
+myMonitor.on('stop', function (website) {
     console.log(website + ' monitor has stopped.');
 });
 
 
-myWebsite.on('error', function (error) {
+myMonitor.on('error', function (error) {
     console.log(error);
 });
 ```
@@ -90,35 +99,70 @@ myWebsite.on('error', function (error) {
 const Monitor = require('ping-monitor');
 
 
-const myserver = new Monitor({
+const myMonitor = new Monitor({
     address: '162.13.124.139',
     port: 8080,
     interval: 5 // minutes
 });
 
 
-myserver.on('up', function (res) {
+myMonitor.on('up', function (res) {
     console.log('Yay!! ' + res.address + ':' + res.port + ' is up.');
 });
 
 
-myserver.on('down', function (res) {
+myMonitor.on('down', function (res) {
     console.log('Oh Snap!! ' + res.address + ':' + res.port + ' is down! ');
 });
 
 
-myserver.on('stop', function (address) {
+myMonitor.on('stop', function (address) {
     console.log(address + ' monitor has stopped.');
 });
 
 
-myserver.on('error', function (error) {
+myMonitor.on('error', function (error) {
     console.log(error);
 });
 ```
 
 
 ### Change log
+
+#### v0.3.1
+
+**New Feature**
+
+  - Added a `state` object that stores useful monitoring data
+
+  - **`State` object**
+
+```javascript
+  const Monitor = require('ping-monitor');
+
+  const myMonitor = new Monitor(options);
+
+  myMonitor.on(event, function(response, state) {
+    /*
+      response {...}  
+      state {
+        created_at <Date.now()>
+        isUp <Boolean>
+        host <String>
+        port: <Integer>
+        totalRequests <Integer>
+        lastDownTime <Date.now()>
+        lastRequest <Date.now()>
+        interval <Integer>
+      }
+    */
+  });
+```
+
+**Changes made**
+  - The event handler now accepts to arguments `response` and `state`, please see above examples.
+
+
 
 #### v0.3.0
 

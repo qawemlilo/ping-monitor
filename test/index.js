@@ -26,14 +26,18 @@ describe('Monitor', () => {
       interval: 0.1
     });
 
-    ping.on('up', function (res) {
+    ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
+
       ping.stop();
+
       done();
     });
 
-    ping.on('down', function (res) {
+    ping.on('down', function (res, state) {
       expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
       ping.stop();
       done(new Error(res.statusMessage));
     });
@@ -46,14 +50,15 @@ describe('Monitor', () => {
       interval: 0.1
     });
 
-    ping.on('up', function (res) {
+    ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(500);
       ping.stop();
       done(new Error(res.statusMessage));
     });
 
-    ping.on('down', function (res) {
+    ping.on('down', function (res, state) {
       expect(res.statusCode).to.equal(500);
+      expect(state.totalRequests).to.equal(1);
       ping.stop();
       done();
     });
@@ -66,8 +71,9 @@ describe('Monitor', () => {
       interval: 0.1
     });
 
-    ping.on('stop', function (res) {
+    ping.on('stop', function (res, state) {
       expect(res).to.equal('https://ragingflame.co.za/must-pass');
+      expect(state.host).to.equal('https://ragingflame.co.za/must-pass');
       done();
     });
 
@@ -82,13 +88,14 @@ describe('Monitor', () => {
       interval: 0.1
     });
 
-    ping.on('up', function (res) {
+    ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
       ping.stop();
       done();
     });
 
-    ping.on('down', function (res) {
+    ping.on('down', function (res, state) {
       expect(res.statusCode).to.equal(200);
       ping.stop();
       done(new Error(res.statusMessage));
