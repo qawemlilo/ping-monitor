@@ -180,7 +180,7 @@ myMonitor.on('error', function (error) {
 
 ## Testing
 ```
-node test
+npm test
 ```
 
 
