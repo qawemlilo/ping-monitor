@@ -178,7 +178,7 @@ Changes in v0.4.1 give you more control to define your http requests and what re
   - Added `httpOptions` prop to Monitor instance options.
   - Added `expect` prop for naming your your monitor.
 
-*Tip:* See [options](options) section to learn how they work.
+*Tip:* See [options](https://github.com/qawemlilo/node-monitor#options) section to learn how they work.
 
 
 #### v0.4.0
