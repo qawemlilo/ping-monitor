@@ -13,7 +13,7 @@ npm install ping-monitor
 ```javascript
 const Monitor = require('ping-monitor');
 
-const myWebsite = new Monitor(options);
+const myWebsite = new Monitor(options, oldState);
 
 myWebsite.on(event, function(response, state) {
     // Do something with the response
@@ -34,7 +34,7 @@ myWebsite.on(event, function(response, state) {
 - `up` - All is good website is up.
 - `down` - Not good, website is down.
 - `stop` - Fired when the monitor has stopped.
-- `error` - Fired when there's an error within the module
+- `error` - Fired when there's an error
 
 
 
@@ -42,7 +42,7 @@ myWebsite.on(event, function(response, state) {
 
 - `object.website` - website being monitored.
 - `object.address` - server address being monitored.
-- `object.port` - server port being monitored.
+- `object.port` - server port.
 - `object.responseTime` - time in milliseconds.
 - `object.time` - (aka responseTime) request response time.
 - `object.responseMessage` -  http response code message.
@@ -50,14 +50,22 @@ myWebsite.on(event, function(response, state) {
 
 ### state object
 
+- `object.id` <Integer> `null` - monitor id, useful when persistence.
+- `object.title` <String> `null` - monitor label for humans.
+- `object.active` <Boolean> `true` - flag to indicate if monitor is active.
+- `object.isUp` <Boolean> `true` - flag to indicate if monitored server is up or down.
 - `object.created_at` <Date.now()> - monitor creation date.
-- `object.isUp` <Boolean> - current uptime status of the monitor.
-- `object.port` <Integer> - server port.
-- `object.host` <String> - server / website address.
-- `object.totalRequests` <Integer> - total requests made.
+- `object.isUp` <Boolean> `true` - current uptime status of the monitor.
+- `object.port` <Integer> `null` - server port.
+- `object.host` <String> `null` - server / website address.
+- `object.totalRequests` <Integer> `0` - total requests made.
+- `object.totalDownTimes` <Integer> `0` - total number of downtimes.
 - `object.lastDownTime` <Date.now()> - time of last downtime.
 - `object.lastRequest` <Date.now()> - time of last request.
-- `object.interval` <Integer> - polling interval in minutes
+- `object.interval` <Integer> `5` - polling interval in minutes
+- `object.website` <String> `null`  - website being monitored.
+- `object.address` <String> `null`  - server address being monitored.
+- `object.port` <Integer> `null` - server port.
 
 ### Website Example
 ```javascript
@@ -68,6 +76,7 @@ const Monitor = require('ping-monitor');
 
 const myMonitor = new Monitor({
     website: 'http://www.ragingflame.co.za',
+    title: 'Raging Flame',
     interval: 10 // minutes
 });
 
@@ -106,18 +115,18 @@ const myMonitor = new Monitor({
 });
 
 
-myMonitor.on('up', function (res) {
+myMonitor.on('up', function (res, state) {
     console.log('Yay!! ' + res.address + ':' + res.port + ' is up.');
 });
 
 
-myMonitor.on('down', function (res) {
+myMonitor.on('down', function (res, state) {
     console.log('Oh Snap!! ' + res.address + ':' + res.port + ' is down! ');
 });
 
 
-myMonitor.on('stop', function (address) {
-    console.log(address + ' monitor has stopped.');
+myMonitor.on('stop', function (res, state) {
+    console.log(res.address + ' monitor has stopped.');
 });
 
 
@@ -129,11 +138,28 @@ myMonitor.on('error', function (error) {
 
 ### Change log
 
+#### v0.4.0
+
+
+**Changes**
+
+Most of the changes introduced in this version were introduced to support database persistence.
+
+  - Added `id` prop, useful when you add database persistence.
+  - Added `title` prop for naming your your monitor.
+  - Added `active` prop to flag if monitoring is active.
+  - Added `totalDownTimes` prop for keeping record of total downtimes.
+  - Added `isUp` prop to indicate if monitored server is up or down.
+  - Added `website`, `address`, `totalDownTimes`, `active`, `active` props to the emitted `state` object
+  - Added eslinting (2015) and cleaned up the code a bit
+  - *breaking change: * the `stop` event now takes a callback that accepts 2 arguments, `response` && `state` (same as the `up` and `down` events).
+
+
 #### v0.3.1
 
 **New Feature**
 
-  - Added a `state` object that stores useful monitoring data
+  - Added a `state` object in the response that returns useful monitoring data
 
   - **`State` object**
 
@@ -173,7 +199,7 @@ myMonitor.on('error', function (error) {
 
 #### v0.2.0
 
-  - Code cleanup and upgrade to ES5
+  - Code cleanup and upgrade to ES6
   - Removed the `error` event - now being handled internally
   - Bug fixed: [Unreachable resource not handled #9](https://github.com/qawemlilo/node-monitor/issues/9)
 
