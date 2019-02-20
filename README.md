@@ -23,10 +23,38 @@ myWebsite.on(event, function(response, state) {
 
 ### Options
 
-- `website` - The url of the website to be monitored (required is monitoring a website).
-- `address` - Server address to be monitored (required if monitoring tcp server).
-- `port` - Server port (required if monitoring tcp server).
-- `interval` (defaults to 15) - time interval (in minutes) for polling requests.
+- `website` <String> - The url of the website to be monitored (required is monitoring a website).
+- `address` <String> - Server address to be monitored (required if monitoring tcp server).
+- `port` <Integer> - Server port (required if monitoring tcp server).
+- `interval` <Integer> (defaults to 15) - time interval (in minutes) for polling requests.
+
+**New Options: ** v0.4.1
+
+The new options give you more control to define your http endpoints.
+
+- `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
+- `expect` <Object> - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
+
+```javascript
+const myApi = new Monitor({
+    website: 'http://api.ragingflame.co.za',
+    title: 'Raging Flame',
+    interval: 10 // minutes
+
+    // new options
+    httpOptions: {
+      path: '/users',
+      method: 'get',
+      query: {
+        id: 3
+      }
+    },
+    expect: {
+      statusCode: 200
+    }
+});
+```
+
 
 
 ### Emitted Events
@@ -137,6 +165,21 @@ myMonitor.on('error', function (error) {
 
 
 ### Change log
+
+
+#### v0.4.1
+
+
+**Changes**
+
+Changes in v0.4.1 give you more control to define your http requests and what response to expect.
+
+
+  - Added `httpOptions` prop to Monitor instance options.
+  - Added `expect` prop for naming your your monitor.
+
+*Tip:* See [options](options) section to learn how they work.
+
 
 #### v0.4.0
 

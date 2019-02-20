@@ -16,6 +16,11 @@ describe('Monitor', function () {
       .get('/must-pass-2')
       .reply(200, 'page is up');
 
+
+    nock('https://ragingflame.co.za')
+      .get('/test-redirect')
+      .reply(301, 'page has be redirected up');
+
     nock('https://ragingflame.co.za')
       .get('/not-active')
       .reply(200, 'page is up');
@@ -23,6 +28,10 @@ describe('Monitor', function () {
     nock('https://ragingflame.co.za')
       .get('/must-fail')
       .reply(500, 'page is up');
+
+    nock('https://ragingflame.co.za')
+        .get('/test-http-options/users')
+        .reply(301, 'page is up');
 
     tcpServer = require('./tcpServer')
   });
@@ -203,6 +212,84 @@ describe('Monitor', function () {
       ping.stop();
       done(new Error(res.statusMessage));
     });
+  });
+
+
+  it('should test redirect', function (done) {
+    try {
+      let pingRedirect = new Monitor({
+        website: 'https://ragingflame.co.za/test-redirect',
+        interval: 0.1,
+        expect: {
+          statusCode: 301
+        }
+      });
+
+      ping.on('up', function (res, state) {
+        expect(res.statusCode).to.equal(301);
+        expect(state.id).to.be.a('null');
+        expect(state.created_at).to.be.gt(0);
+        expect(state.active).to.be.true;
+        expect(state.isUp).to.be.true;
+        expect(state.host).to.be.equal('https://ragingflame.co.za/test-redirect');
+        expect(state.website).to.equal('https://ragingflame.co.za/test-redirect');
+        expect(state.address).to.be.a('null');
+        expect(state.port).to.be.a('null');
+        expect(state.interval).to.equal(0.1);
+        expect(state.totalRequests).to.equal(1);
+        expect(state.totalDownTimes).to.equal(0);
+        expect(state.lastRequest).to.be.gt(0);
+        expect(state.lastDownTime).to.be.a('null');
+        expect(state.title).to.be.a('string');
+
+        ping.stop();
+        done();
+      });
+
+      ping.on('down', function (res, state) {
+        expect(res.statusCode).to.equal(301);
+        ping.stop();
+        done(new Error(res.statusMessage));
+      });
+    }
+    catch(e) {
+      done();
+    }
+  });
+
+
+  it('should test httpOptions', function (done) {
+    try {
+      let pingHttp = new Monitor({
+        website: 'https://ragingflame.co.za/test-http-options',
+        interval: 0.1,
+        httpOptions: {
+          path: '/test-http-options/users'
+        },
+        expect: {
+          statusCode: 301
+        }
+      });
+
+      pingHttp.on('up', function (res, state) {
+        expect(res.statusCode).to.equal(301);
+        pingHttp.stop();
+        done();
+      });
+
+      pingHttp.on('down', function (res, state) {
+        expect(res.statusCode).to.equal(301);
+        pingHttp.stop();
+        done(new Error(res.statusMessage));
+      });
+
+      pingHttp.on('error', function (error) {
+        done(error);
+      });
+    }
+    catch(e) {
+      done();
+    }
   });
 
   after(function (done) {
