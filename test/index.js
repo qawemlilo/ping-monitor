@@ -16,6 +16,10 @@ describe('Monitor', function () {
       .get('/must-pass-2')
       .reply(200, 'page is up');
 
+    nock('https://ragingflame.co.za')
+      .get('/must-pass-3')
+      .reply(200, 'page is up');
+
 
     nock('https://ragingflame.co.za')
       .get('/test-redirect')
@@ -179,13 +183,12 @@ describe('Monitor', function () {
   it('should handle the stop event', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-pass',
+      website: 'https://ragingflame.co.za/must-pass-3',
       interval: 0.1
     });
 
     ping.on('stop', function (res, state) {
       expect(res.statusCode).to.equal(200);
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
       done();
     });
 

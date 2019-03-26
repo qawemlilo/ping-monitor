@@ -28,7 +28,7 @@ myWebsite.on(event, function(response, state) {
 - `port` <Integer> - Server port (required if monitoring tcp server).
 - `interval` <Integer> (defaults to 15) - time interval (in minutes) for polling requests.
 
-**New Options: ** v0.4.1
+** New Options: ** v0.4.1
 
 The new options give you more control to define your http endpoints.
 
@@ -166,6 +166,19 @@ myMonitor.on('error', function (error) {
 
 ### Change log
 
+
+#### v0.4.2
+
+
+**Changes**
+
+Added some utility methods used when updating a monitor and added immediate ping on monitor creation.
+
+  - Added `pause` method to Monitor.
+  - Added `unpause` method to Monitor.
+
+
+*Tip:* See [options](https://github.com/qawemlilo/node-monitor#options) section to learn how they work.
 
 #### v0.4.1
 
