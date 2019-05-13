@@ -37,6 +37,10 @@ describe('Monitor', function () {
         .get('/test-http-options/users')
         .reply(301, 'page is up');
 
+    nock('https://ragingflame.co.za')
+        .post('/users')
+        .reply(200, (uri, requestBody) => requestBody)
+
     tcpServer = require('./tcpServer')
   });
 
@@ -282,6 +286,42 @@ describe('Monitor', function () {
 
       pingHttp.on('down', function (res, state) {
         expect(res.statusCode).to.equal(301);
+        pingHttp.stop();
+        done(new Error(res.statusMessage));
+      });
+
+      pingHttp.on('error', function (error) {
+        done(error);
+      });
+    }
+    catch(e) {
+      done();
+    }
+  });
+
+  it('should post body', function (done) {
+    try {
+      let pingHttp = new Monitor({
+        website: 'https://ragingflame.co.za',
+        interval: 0.1,
+        httpOptions: {
+          path: '/users',
+          method: 'post',
+          body: 'Test'
+        },
+        expect: {
+          statusCode: 200
+        }
+      });
+
+      pingHttp.on('up', function (res) {
+        expect(res.statusCode).to.equal(200);
+        pingHttp.stop();
+        done();
+      });
+
+      pingHttp.on('down', function (res) {
+        expect(res.statusCode).to.equal(200);
         pingHttp.stop();
         done(new Error(res.statusMessage));
       });

@@ -13,7 +13,7 @@ npm install ping-monitor
 ```javascript
 const Monitor = require('ping-monitor');
 
-const myWebsite = new Monitor(options, oldState);
+const myWebsite = new Monitor(options);
 
 myWebsite.on(event, function(response, state) {
     // Do something with the response
@@ -36,6 +36,8 @@ The new options give you more control to define your http endpoints.
 - `expect` <Object> - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
 
 ```javascript
+
+// http Get
 const myApi = new Monitor({
     website: 'http://api.ragingflame.co.za',
     title: 'Raging Flame',
@@ -48,6 +50,27 @@ const myApi = new Monitor({
       query: {
         id: 3
       }
+    },
+    expect: {
+      statusCode: 200
+    }
+});
+
+// http Post
+const myApi = new Monitor({
+    website: 'http://api.ragingflame.co.za',
+    title: 'Raging Flame',
+    interval: 10 // minutes
+
+    // new options
+    httpOptions: {
+      path: '/users',
+      method: 'post',
+      query: {
+        first_name: 'Que',
+        last_name: 'Fire'
+      },
+      body: 'Hello World!'
     },
     expect: {
       statusCode: 200
@@ -71,10 +94,10 @@ const myApi = new Monitor({
 - `object.website` - website being monitored.
 - `object.address` - server address being monitored.
 - `object.port` - server port.
-- `object.responseTime` - time in milliseconds.
 - `object.time` - (aka responseTime) request response time.
 - `object.responseMessage` -  http response code message.
 - `object.responseTime` - response time in milliseconds.
+- `object.httpResponse` - native http/s response object.
 
 ### state object
 
@@ -97,7 +120,7 @@ const myApi = new Monitor({
 
 ### Website Example
 ```javascript
-"use strict";
+'use strict';
 
 const Monitor = require('ping-monitor');
 
@@ -131,7 +154,7 @@ myMonitor.on('error', function (error) {
 
 ### TCP Example
 ```javascript
-"use strict";
+'use strict';
 
 const Monitor = require('ping-monitor');
 
@@ -166,6 +189,63 @@ myMonitor.on('error', function (error) {
 
 ### Change log
 
+
+#### v0.4.3
+
+
+**Changes**
+
+ - Added the native http/s response object in the `Monitor` response object
+ - Added Post support in your Monitor instances.
+
+You can now include a body in your `httpOptions`:
+
+```javascript
+// http Post
+const myApi = new Monitor({
+    website: 'http://api.ragingflame.co.za',
+    title: 'Raging Flame',
+    interval: 10 // minutes
+
+    // new options
+    httpOptions: {
+      path: '/users',
+      method: 'post',
+      query: {
+        first_name: 'Que',
+        last_name: 'Fire'
+      },
+      body: 'Hello World!'
+    },
+    expect: {
+      statusCode: 200
+    }
+});
+
+myApi.on('up', function (res, state) {
+  /*
+    response {
+      responseTime <Integer> milliseconds
+      responseMessage <String> response code message
+      website <String> url being monitored.
+      address <String> server address being monitored
+      port <Integer>
+      httpResponse <Object> native http/s response object
+    }
+
+    state {
+      created_at <Date.now()>
+      isUp <Boolean>
+      host <String>
+      port: <Integer>
+      totalRequests <Integer>
+      lastDownTime <Date.now()>
+      lastRequest <Date.now()>
+      interval <Integer>
+    }
+  */
+});
+```
 
 #### v0.4.2
 
