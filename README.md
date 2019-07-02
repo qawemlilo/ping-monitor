@@ -192,6 +192,10 @@ myMonitor.on('error', function (error) {
 
 #### v0.4.3
 
+Dependencies update
+
+#### v0.4.3
+
 
 **Changes**
 
