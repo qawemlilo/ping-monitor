@@ -86,6 +86,7 @@ const myApi = new Monitor({
 - `down` - Not good, website is down.
 - `stop` - Fired when the monitor has stopped.
 - `error` - Fired when there's an error
+- `timeout` - Fired when the http request times out
 
 
 
@@ -181,7 +182,12 @@ myMonitor.on('stop', function (res, state) {
 });
 
 
-myMonitor.on('error', function (error) {
+myMonitor.on('error', function (error, res) {
+    console.log(error);
+});
+
+
+myMonitor.on('timeout', function (error, res) {
     console.log(error);
 });
 ```
@@ -190,7 +196,30 @@ myMonitor.on('error', function (error) {
 ### Change log
 
 
-#### v0.4.3
+#### v0.5.0
+
+
+**Changes**
+
+ - Added `timeout` event to Monitor instance. This event is passed from the htt/s module.
+
+```javascript
+  myMonitor.on('timeout', function (error, res) {
+    console.log(error);
+  });
+  
+  // also make sure that you are handling the error event 
+  myMonitor.on('error', function (error, res) {
+    console.log(error);
+  });
+```
+
+ - Dependencies update
+
+*Please note:* When the `timeout` event is fired, it is followed by the `error` event which is created when we manually abort the http request.
+
+
+#### v0.4.4
 
 Dependencies update
 

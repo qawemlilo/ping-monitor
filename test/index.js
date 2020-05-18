@@ -22,6 +22,7 @@ describe('Monitor', function () {
 
 
     nock('https://ragingflame.co.za')
+      .persist()
       .get('/test-redirect')
       .reply(301, 'page has be redirected up');
 
@@ -34,14 +35,20 @@ describe('Monitor', function () {
       .reply(500, 'page is up');
 
     nock('https://ragingflame.co.za')
-        .get('/test-http-options/users')
-        .reply(301, 'page is up');
+      .get('/test-http-options/users')
+      .reply(301, 'page is up');
 
     nock('https://ragingflame.co.za')
-        .post('/users')
-        .reply(200, (uri, requestBody) => requestBody)
+      .post('/users')
+      .reply(200, (uri, requestBody) => requestBody);
 
-    tcpServer = require('./tcpServer')
+    nock('https://ragingflame.co.za')
+      .get('/')
+      .delay(5000)
+      .reply(200, 'Page is up');
+
+      
+    tcpServer = require('./tcpServer');
   });
 
   it('should pass', function (done) {
@@ -328,6 +335,43 @@ describe('Monitor', function () {
 
       pingHttp.on('error', function (error) {
         done(error);
+      });
+    }
+    catch(e) {
+      done();
+    }
+  });
+
+  it('should timeout request', function (done) {
+    try {
+      let pingHttp = new Monitor({
+        website: 'https://ragingflame.co.za',
+        interval: 0.1,
+        httpOptions: {
+          timeout: 100
+        }
+      });
+
+      pingHttp.on('up', function (res) {
+        expect(res.statusCode).to.equal(500);
+        pingHttp.stop();
+        done(new Error('up - should timeout request'));
+      });
+
+      pingHttp.on('down', function (res) {
+        expect(res.statusCode).to.equal(500);
+        pingHttp.stop();
+        done(new Error('down - should timeout request'));
+      });
+
+      pingHttp.on('timeout', function (error, res) {
+        expect(res.statusCode).to.equal(500);
+        pingHttp.stop();
+      });
+
+      pingHttp.on('error', function (error, res) {
+        expect(res.statusCode).to.equal(500);
+        done();
       });
     }
     catch(e) {
