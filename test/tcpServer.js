@@ -1,4 +1,6 @@
-"use strict";
+/* eslint-disable no-console */
+/* eslint-disable no-unused-vars */
+'use strict';
 
 const net = require('net');
 

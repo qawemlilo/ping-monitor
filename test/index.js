@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 'use strict';
 
 const expect = require('chai').expect;
@@ -43,10 +45,17 @@ describe('Monitor', function () {
       .reply(200, (uri, requestBody) => requestBody);
 
     nock('https://ragingflame.co.za')
-      .get('/')
+      .get('/timeout')
       .delay(5000)
       .reply(200, 'Page is up');
+    
+    nock('https://ragingflame.co.za')
+      .get('/content-search')
+      .reply(200, 'The quick brown fox jumps over the lazy dog');
 
+    nock('https://ragingflame.co.za')
+      .get('/content-search-2')
+      .reply(200, 'The quick brown fox jumps over the lazy dog');
       
     tcpServer = require('./tcpServer');
   });
@@ -345,7 +354,7 @@ describe('Monitor', function () {
   it('should timeout request', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://ragingflame.co.za',
+        website: 'https://ragingflame.co.za/timeout',
         interval: 0.1,
         httpOptions: {
           timeout: 100
@@ -377,6 +386,90 @@ describe('Monitor', function () {
     catch(e) {
       done();
     }
+  });
+
+  it('should pass content search', function (done) {
+
+    let ping = new Monitor({
+      website: 'https://ragingflame.co.za/content-search',
+      interval: 0.1,
+      expect: {
+        contentSearch: 'fox'
+      }
+    });
+
+    ping.on('up', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+
+      // check state props
+      expect(state.id).to.be.a('null');
+      expect(state.created_at).to.be.gt(0);
+      expect(state.active).to.be.true;
+      expect(state.isUp).to.be.true;
+      expect(state.host).to.be.equal('https://ragingflame.co.za/content-search');
+      expect(state.website).to.equal('https://ragingflame.co.za/content-search');
+      expect(state.address).to.be.a('null');
+      expect(state.port).to.be.a('null');
+      expect(state.interval).to.equal(0.1);
+      expect(state.totalRequests).to.equal(1);
+      expect(state.totalDownTimes).to.equal(0);
+      expect(state.lastRequest).to.be.gt(0);
+      expect(state.lastDownTime).to.be.a('null');
+      expect(state.title).to.be.a('string');
+
+      ping.stop();
+
+      done();
+    });
+
+    ping.on('down', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
+      ping.stop();
+      done(new Error(res.statusMessage));
+    });
+  });
+
+  it('should fail content search', function (done) {
+
+    let ping = new Monitor({
+      website: 'https://ragingflame.co.za/content-search-2',
+      interval: 0.1,
+      expect: {
+        contentSearch: '123'
+      }
+    });
+
+    ping.on('up', function (res, state) {
+      expect(res.statusCode).to.equal(500);
+
+      // check state props
+      expect(state.id).to.be.a('null');
+      expect(state.created_at).to.be.gt(0);
+      expect(state.active).to.be.true;
+      expect(state.isUp).to.be.false;
+      expect(state.host).to.be.equal('https://ragingflame.co.za/content-search-2');
+      expect(state.website).to.equal('https://ragingflame.co.za/content-search-2');
+      expect(state.address).to.be.a('null');
+      expect(state.port).to.be.a('null');
+      expect(state.interval).to.equal(0.1);
+      expect(state.totalRequests).to.equal(1);
+      expect(state.totalDownTimes).to.equal(0);
+      expect(state.lastRequest).to.be.gt(0);
+      expect(state.lastDownTime).to.be.a('null');
+      expect(state.title).to.be.a('string');
+
+      ping.stop();
+
+      done(new Error('Should have never got here'));
+    });
+
+    ping.on('down', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
+      ping.stop();
+      done();
+    });
   });
 
   after(function (done) {
