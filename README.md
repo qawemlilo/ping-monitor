@@ -106,7 +106,7 @@ const myApi = new Monitor({
 - `object.title` <String> `null` - monitor label for humans.
 - `object.active` <Boolean> `true` - flag to indicate if monitor is active.
 - `object.isUp` <Boolean> `true` - flag to indicate if monitored server is up or down.
-- `object.created_at` <Date.now()> - monitor creation date.
+- `object.createdAt` <Date.now()> - monitor creation date.
 - `object.isUp` <Boolean> `true` - current uptime status of the monitor.
 - `object.port` <Integer> `null` - server port.
 - `object.host` <String> `null` - server / website address.
@@ -267,7 +267,7 @@ myApi.on('up', function (res, state) {
     }
 
     state {
-      created_at <Date.now()>
+      createdAat <Date.now()>
       isUp <Boolean>
       host <String>
       port: <Integer>
@@ -341,7 +341,7 @@ Most of the changes introduced in this version were introduced to support databa
     /*
       response {...}  
       state {
-        created_at <Date.now()>
+        createdAt <Date.now()>
         isUp <Boolean>
         host <String>
         port: <Integer>

@@ -2,10 +2,13 @@
 /* eslint-disable no-unused-vars */
 'use strict';
 
-const expect = require('chai').expect;
-const nock = require('nock');
-const Monitor = require('../lib/monitor');
-let tcpServer = null;
+import { expect } from 'chai'
+import nock from 'nock'
+import net from 'net'
+import TcpServer from './tcpServer'
+import Monitor from '../lib/monitor'
+
+let tcpServer: net.Server
 
 
 describe('Monitor', function () {
@@ -57,7 +60,7 @@ describe('Monitor', function () {
       .get('/content-search-2')
       .reply(200, 'The quick brown fox jumps over the lazy dog');
       
-    tcpServer = require('./tcpServer');
+    tcpServer = TcpServer;
   });
 
   it('should pass', function (done) {
@@ -72,7 +75,7 @@ describe('Monitor', function () {
 
       // check state props
       expect(state.id).to.be.a('null');
-      expect(state.created_at).to.be.gt(0);
+      expect(state.createdAt).to.be.gt(0);
       expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
       expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass');
@@ -108,7 +111,7 @@ describe('Monitor', function () {
       });
 
       pingdom.on('error', function (error) {
-        expect(error).to.be.an.instance.of(error);
+        expect(error).to.be.an.instanceof(error);
         done();
       });
     }
@@ -132,7 +135,7 @@ describe('Monitor', function () {
 
       // check state props
       expect(state.id).to.be.a('null');
-      expect(state.created_at).to.be.gt(0);
+      expect(state.createdAt).to.be.gt(0);
       expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
       expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass-2');
@@ -182,7 +185,7 @@ describe('Monitor', function () {
 
       // check state props
       expect(state.id).to.be.a('null');
-      expect(state.created_at).to.be.gt(0);
+      expect(state.createdAt).to.be.gt(0);
       expect(state.active).to.be.true;
       expect(state.isUp).to.be.false;
       expect(state.host).to.be.equal('https://ragingflame.co.za/must-fail');
@@ -248,10 +251,10 @@ describe('Monitor', function () {
         }
       });
 
-      ping.on('up', function (res, state) {
+      pingRedirect.on('up', function (res, state) {
         expect(res.statusCode).to.equal(301);
         expect(state.id).to.be.a('null');
-        expect(state.created_at).to.be.gt(0);
+        expect(state.createdAt).to.be.gt(0);
         expect(state.active).to.be.true;
         expect(state.isUp).to.be.true;
         expect(state.host).to.be.equal('https://ragingflame.co.za/test-redirect');
@@ -265,13 +268,13 @@ describe('Monitor', function () {
         expect(state.lastDownTime).to.be.a('null');
         expect(state.title).to.be.a('string');
 
-        ping.stop();
+        pingRedirect.stop();
         done();
       });
 
-      ping.on('down', function (res, state) {
+      pingRedirect.on('down', function (res, state) {
         expect(res.statusCode).to.equal(301);
-        ping.stop();
+        pingRedirect.stop();
         done(new Error(res.statusMessage));
       });
     }
@@ -403,7 +406,7 @@ describe('Monitor', function () {
 
       // check state props
       expect(state.id).to.be.a('null');
-      expect(state.created_at).to.be.gt(0);
+      expect(state.createdAt).to.be.gt(0);
       expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
       expect(state.host).to.be.equal('https://ragingflame.co.za/content-search');
@@ -445,7 +448,7 @@ describe('Monitor', function () {
 
       // check state props
       expect(state.id).to.be.a('null');
-      expect(state.created_at).to.be.gt(0);
+      expect(state.createdAt).to.be.gt(0);
       expect(state.active).to.be.true;
       expect(state.isUp).to.be.false;
       expect(state.host).to.be.equal('https://ragingflame.co.za/content-search-2');
