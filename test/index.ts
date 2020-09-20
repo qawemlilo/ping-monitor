@@ -6,7 +6,9 @@ import { expect } from 'chai'
 import nock from 'nock'
 import net from 'net'
 import TcpServer from './tcpServer'
-import Monitor from '../lib/monitor'
+import Monitor, { WebProtocolOptions } from '../src/monitor'
+import { Response } from 'got/dist/source';
+import { MonitorResponse } from '../src/protocols';
 
 let tcpServer: net.Server
 
@@ -14,315 +16,247 @@ let tcpServer: net.Server
 describe('Monitor', function () {
   before(function () {
     nock('https://ragingflame.co.za')
+      .persist()
       .get('/must-pass')
       .reply(200, 'page is up');
 
     nock('https://ragingflame.co.za')
-      .get('/must-pass-2')
+      .persist()
+      .get('/test-redirect')
+      .reply(301, 'page has be redirected up', {
+        'Location': 'https://ragingflame.co.za/must-pass'
+      })
+      .get('/must-pass')
       .reply(200, 'page is up');
-
-    nock('https://ragingflame.co.za')
-      .get('/must-pass-3')
-      .reply(200, 'page is up');
-
 
     nock('https://ragingflame.co.za')
       .persist()
-      .get('/test-redirect')
-      .reply(301, 'page has be redirected up');
-
-    nock('https://ragingflame.co.za')
       .get('/not-active')
       .reply(200, 'page is up');
 
     nock('https://ragingflame.co.za')
+      .persist()
       .get('/must-fail')
       .reply(500, 'page is up');
 
     nock('https://ragingflame.co.za')
+      .persist()
       .get('/test-http-options/users')
       .reply(301, 'page is up');
 
     nock('https://ragingflame.co.za')
+      .persist()
       .post('/users')
       .reply(200, (uri, requestBody) => requestBody);
 
     nock('https://ragingflame.co.za')
+      .persist()
       .get('/timeout')
       .delay(5000)
       .reply(200, 'Page is up');
     
     nock('https://ragingflame.co.za')
+      .persist()
       .get('/content-search')
-      .reply(200, 'The quick brown fox jumps over the lazy dog');
-
-    nock('https://ragingflame.co.za')
-      .get('/content-search-2')
       .reply(200, 'The quick brown fox jumps over the lazy dog');
       
     tcpServer = TcpServer;
-  });
+  })
 
   it('should pass', function (done) {
+    this.timeout(10000)
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-pass',
-      interval: 0.1
-    });
+      id: 1,
+      title: 'Test 1',
+      createdAt: 1,
+      protocol: 'web',
+      protocolOptions: {
+        url: 'https://ragingflame.co.za/must-pass',
+        httpOptions: {}
+      },
+      interval: 500
+    })
 
-    ping.on('up', function (res, state) {
-      expect(res.statusCode).to.equal(200);
+    ping.on('up', (monitor: Monitor, response: MonitorResponse) => {
+      const res = response.data
+      const state = monitor.getState()
 
+      expect(res.statusCode).to.equal(200)
       // check state props
-      expect(state.id).to.be.a('null');
-      expect(state.createdAt).to.be.gt(0);
-      expect(state.active).to.be.true;
-      expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass');
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
-      expect(state.address).to.be.a('null');
-      expect(state.port).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
-      expect(state.totalRequests).to.equal(1);
-      expect(state.totalDownTimes).to.equal(0);
-      expect(state.lastRequest).to.be.gt(0);
-      expect(state.lastDownTime).to.be.a('null');
-      expect(state.title).to.be.a('string');
+      expect(monitor.id).to.equal(1)
+      expect(monitor.title).to.be.a('string')
+      expect(monitor.createdAt).to.be.gt(0)
+      expect(state.active).to.be.true
+      expect(state.isUp).to.be.true
+      expect((ping.protocolOptions as WebProtocolOptions).url).to.be.equal('https://ragingflame.co.za/must-pass')
+      expect(monitor.interval).to.equal(500)
+      expect(state.totalRequests).to.equal(1)
+      expect(state.totalDownTimes).to.equal(0)
+      expect(state.lastRequest).to.be.gt(0)
+      expect(state.lastDownTime).to.be.a('null')
 
-      ping.stop();
+      ping.stop()
+      done()
+    })
 
-      done();
-    });
-
-    ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
-      ping.stop();
-      done(new Error(res.statusMessage));
-    });
-  });
-
-
-  it('should throw error', function (done) {
-    try {
-      let pingdom = new Monitor({
-        website: 'https://ragingflame.co.za/must-pass',
-        address: '127.0.0.1'
-      });
-
-      pingdom.on('error', function (error) {
-        expect(error).to.be.an.instanceof(error);
-        done();
-      });
-    }
-    catch(e) {
-      done();
-    }
-  });
-
-  it('state should override monitor options', function (done) {
-
-    let pinger = new Monitor({
-      website: 'https://ragingflame.co.za/must-fail',
-      interval: 0.2
-    }, {
-      website: 'https://ragingflame.co.za/must-pass-2',
-      interval: 0.1
-    });
-
-    pinger.on('up', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-
-      // check state props
-      expect(state.id).to.be.a('null');
-      expect(state.createdAt).to.be.gt(0);
-      expect(state.active).to.be.true;
-      expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass-2');
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass-2');
-      expect(state.address).to.be.a('null');
-      expect(state.port).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
-      expect(state.totalRequests).to.equal(1);
-      expect(state.totalDownTimes).to.equal(0);
-      expect(state.lastRequest).to.be.gt(0);
-      expect(state.lastDownTime).to.be.a('null');
-      expect(state.title).to.be.a('string');
-
-      pinger.stop();
-
-      done();
-    });
-
-    pinger.on('down', function (res, state) {
-
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
-      pinger.stop();
-      done(new Error(res.statusMessage));
-    });
-
-    pinger.on('error', function (error) {
-      done(error);
-    });
-  });
+    ping.on('down', (monitor: Monitor, response: MonitorResponse) => {
+      ping.stop()
+      done(new Error('Should have never got here'))
+    })
+  })
 
   it('should fail', function (done) {
+    this.timeout(10000)
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-fail',
-      interval: 0.1
-    });
+      id: 2,
+      title: 'Test 2',
+      createdAt: 1,
+      protocol: 'web',
+      protocolOptions: {
+        url:'https://ragingflame.co.za/must-fail',
+        httpOptions: {}
+      },
+      interval: 500
+    })
 
-    ping.on('up', function (res) {
-      expect(res.statusCode).to.equal(500);
-      ping.stop();
-      done(new Error(res.statusMessage));
-    });
+    ping.on('up', (monitor: Monitor, response: MonitorResponse) => {
+      ping.stop()
+      done(new Error('Should have never got here'))
+    })
 
-    ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(500);
-
+    ping.on('down', (monitor: Monitor, response: MonitorResponse) => {
+      const res = response.data
+      const state = monitor.getState()
+      
+      expect(res.statusCode).to.equal(500)
       // check state props
-      expect(state.id).to.be.a('null');
-      expect(state.createdAt).to.be.gt(0);
-      expect(state.active).to.be.true;
-      expect(state.isUp).to.be.false;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-fail');
-      expect(state.website).to.equal('https://ragingflame.co.za/must-fail');
-      expect(state.address).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
-      expect(state.totalRequests).to.equal(1);
-      expect(state.totalDownTimes).to.equal(1);
-      expect(state.lastRequest).to.be.gt(0);
-      expect(state.lastDownTime).to.be.gt(0);
-      expect(state.title).to.be.a('string');
+      expect(ping.id).to.equal(2)
+      expect(ping.createdAt).to.be.gt(0)
+      expect(state.active).to.be.true
+      expect(state.isUp).to.be.false
+      expect((ping.protocolOptions as WebProtocolOptions).url).to.be.equal('https://ragingflame.co.za/must-fail')
+      expect(ping.interval).to.equal(500)
+      expect(state.totalRequests).to.equal(1)
+      expect(state.totalDownTimes).to.equal(1)
+      expect(state.lastRequest).to.be.gt(0)
+      expect(state.lastDownTime).to.be.gt(0)
 
-      ping.stop();
-      done();
-    });
-  });
+      ping.stop()
+      done()
+    })
+  })
 
   it('should handle the stop event', function (done) {
-
+    this.timeout(10000)
+    
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-pass-3',
-      interval: 0.1
-    });
+      id: 3,
+      title: 'Test 3',
+      createdAt: 1,
+      protocol: 'web',
+      protocolOptions: {
+        url:'https://ragingflame.co.za/must-pass',
+        httpOptions: {}
+      },
+      interval: 500
+    })
 
-    ping.on('stop', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      done();
-    });
+    ping.on('stop', () => {
+      done()
+    })
 
-    ping.stop();
+    setTimeout(() => {
+      ping.stop()
+    }, 1000)
   });
 
   it('should connect to tcp', function (done) {
+    this.timeout(10000)
 
     let ping = new Monitor({
-      address: '127.0.0.1',
-      port: 8124,
-      interval: 0.1
-    });
+      id: 4,
+      title: 'Test 3',
+      createdAt: 1,
+      protocol: 'tcp',
+      protocolOptions: {
+        host: '127.0.0.1',
+        port: 8124
+      },
+      interval: 500
+    })
 
-    ping.on('up', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
-      ping.stop();
-      done();
-    });
+    ping.on('up', function (monitor: Monitor, response: MonitorResponse) {
+      const res = response.data
+      const state = monitor.getState()
 
-    ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      ping.stop();
-      done(new Error(res.statusMessage));
-    });
-  });
+      expect(state.totalRequests).to.equal(1)
+      ping.stop()
+      done()
+    })
+
+    ping.on('error', function (monitor: Monitor, response: MonitorResponse) {
+      ping.stop()
+      done(new Error('Should have never got here'))
+    })
+
+    ping.on('timeout', function (monitor: Monitor, response: MonitorResponse) {
+      ping.stop()
+      done(new Error('Should have never got here'))
+    })
+  })
 
 
   it('should test redirect', function (done) {
+    this.timeout(10000)
+
     try {
-      let pingRedirect = new Monitor({
-        website: 'https://ragingflame.co.za/test-redirect',
-        interval: 0.1,
-        expect: {
-          statusCode: 301
-        }
-      });
-
-      pingRedirect.on('up', function (res, state) {
-        expect(res.statusCode).to.equal(301);
-        expect(state.id).to.be.a('null');
-        expect(state.createdAt).to.be.gt(0);
-        expect(state.active).to.be.true;
-        expect(state.isUp).to.be.true;
-        expect(state.host).to.be.equal('https://ragingflame.co.za/test-redirect');
-        expect(state.website).to.equal('https://ragingflame.co.za/test-redirect');
-        expect(state.address).to.be.a('null');
-        expect(state.port).to.be.a('null');
-        expect(state.interval).to.equal(0.1);
-        expect(state.totalRequests).to.equal(1);
-        expect(state.totalDownTimes).to.equal(0);
-        expect(state.lastRequest).to.be.gt(0);
-        expect(state.lastDownTime).to.be.a('null');
-        expect(state.title).to.be.a('string');
-
-        pingRedirect.stop();
-        done();
-      });
-
-      pingRedirect.on('down', function (res, state) {
-        expect(res.statusCode).to.equal(301);
-        pingRedirect.stop();
-        done(new Error(res.statusMessage));
-      });
-    }
-    catch(e) {
-      done();
-    }
-  });
-
-
-  it('should test httpOptions', function (done) {
-    try {
-      let pingHttp = new Monitor({
-        website: 'https://ragingflame.co.za/test-http-options',
-        interval: 0.1,
-        httpOptions: {
-          path: '/test-http-options/users'
+      let ping = new Monitor({
+        id: 1,
+        title: 'Test',
+        createdAt: 1,
+        protocol: 'web',
+        protocolOptions: {
+          url:'https://ragingflame.co.za/test-redirect',
+          httpOptions: {}
         },
-        expect: {
-          statusCode: 301
-        }
-      });
+        interval: 500
+      })
 
-      pingHttp.on('up', function (res, state) {
-        expect(res.statusCode).to.equal(301);
-        pingHttp.stop();
-        done();
-      });
+      ping.on('up', function (monitor: Monitor, response: MonitorResponse) {
+        const res = response.data
+        const state = monitor.getState()
 
-      pingHttp.on('down', function (res, state) {
-        expect(res.statusCode).to.equal(301);
-        pingHttp.stop();
-        done(new Error(res.statusMessage));
-      });
+        expect(res.statusCode).to.equal(200)
+        expect(res.requestUrl).to.equal('https://ragingflame.co.za/test-redirect')
+        expect(res.url).to.equal('https://ragingflame.co.za/must-pass')
+        expect(res.redirectUrls.length).to.equal(1)
+        ping.stop()
+        done()
+      })
 
-      pingHttp.on('error', function (error) {
-        done(error);
-      });
+      ping.on('down', function (monitor: Monitor, response: MonitorResponse) {
+        ping.stop()
+        done(new Error('Should have never got here'))
+      })
     }
     catch(e) {
-      done();
+      done(e)
     }
-  });
+  })
 
-  it('should post body', function (done) {
-    try {
-      let pingHttp = new Monitor({
-        website: 'https://ragingflame.co.za',
-        interval: 0.1,
+
+  it('should post body', function (done) { 
+    this.timeout(10000)
+
+    let ping = new Monitor({
+      id: 1,
+      title: 'Test',
+      createdAt: 1,
+      protocol: 'web',
+      protocolOptions: {
+        url:'https://ragingflame.co.za',
         httpOptions: {
           path: '/users',
           method: 'post',
@@ -331,153 +265,161 @@ describe('Monitor', function () {
         expect: {
           statusCode: 200
         }
-      });
+      },
+      interval: 500,
+    })
 
-      pingHttp.on('up', function (res) {
-        expect(res.statusCode).to.equal(200);
-        pingHttp.stop();
-        done();
-      });
+    ping.on('up', function (monitor: Monitor, response: MonitorResponse) {
+      const res = response.data
+      const state = monitor.getState()
 
-      pingHttp.on('down', function (res) {
-        expect(res.statusCode).to.equal(200);
-        pingHttp.stop();
-        done(new Error(res.statusMessage));
-      });
+      expect(res.statusCode).to.equal(200)
+      ping.stop()
+      done()
+    });
 
-      pingHttp.on('error', function (error) {
-        done(error);
-      });
-    }
-    catch(e) {
-      done();
-    }
-  });
+    ping.on('down', function (monitor: Monitor, response: MonitorResponse) {
+      ping.stop()
+      done(new Error('Should have never got here'))
+    });
+
+    ping.on('error', function (monitor: Monitor, response: MonitorResponse) {
+      ping.stop()
+      done(new Error('Should have never got here'))
+    });
+  })
 
   it('should timeout request', function (done) {
     try {
-      let pingHttp = new Monitor({
-        website: 'https://ragingflame.co.za/timeout',
-        interval: 0.1,
-        httpOptions: {
-          timeout: 100
-        }
+
+      let ping = new Monitor({
+        id: 1,
+        title: 'Test',
+        createdAt: 1,
+        protocol: 'web',
+        protocolOptions: {
+          url:'https://ragingflame.co.za/timeout',
+          httpOptions: {
+            timeout: 100
+          },
+          expect: {
+            statusCode: 200
+          }
+        },
+        interval: 500,
+      })
+
+      ping.on('up', function (monitor: Monitor, response: MonitorResponse) {
+        ping.stop()
+        done(new Error('Should have never got here'))
       });
 
-      pingHttp.on('up', function (res) {
-        expect(res.statusCode).to.equal(500);
-        pingHttp.stop();
-        done(new Error('up - should timeout request'));
+      ping.on('down', function (monitor: Monitor, response: MonitorResponse) {
+        ping.stop()
+        done(new Error('Should have never got here'))
       });
 
-      pingHttp.on('down', function (res) {
-        expect(res.statusCode).to.equal(500);
-        pingHttp.stop();
-        done(new Error('down - should timeout request'));
+      ping.on('timeout', function (monitor: Monitor, response: MonitorResponse) {
+        monitor.stop()
+        done()
       });
 
-      pingHttp.on('timeout', function (error, res) {
-        expect(res.statusCode).to.equal(500);
-        pingHttp.stop();
-      });
-
-      pingHttp.on('error', function (error, res) {
-        expect(res.statusCode).to.equal(500);
-        done();
+      ping.on('error', function (monitor: Monitor, response: MonitorResponse) {
+        ping.stop()
+        done(new Error('Should have never got here'))
       });
     }
     catch(e) {
-      done();
+      done(e)
     }
   });
 
   it('should pass content search', function (done) {
+    this.timeout(10000)
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/content-search',
-      interval: 0.1,
-      expect: {
-        contentSearch: 'fox'
-      }
-    });
+      id: 1,
+      title: 'Test',
+      createdAt: 1,
+      protocol: 'web',
+      protocolOptions: {
+        url:'https://ragingflame.co.za/content-search',
+        httpOptions: { },
+        expect: {
+          statusCode: 200,
+          contentSearch: 'fox'
+        }
+      },
+      interval: 500,
+    })
 
-    ping.on('up', function (res, state) {
-      expect(res.statusCode).to.equal(200);
+    ping.on('up', function (monitor: Monitor, response: MonitorResponse) {
+      
+      const res = response.data
+      const state = monitor.getState()
 
       // check state props
-      expect(state.id).to.be.a('null');
-      expect(state.createdAt).to.be.gt(0);
-      expect(state.active).to.be.true;
-      expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/content-search');
-      expect(state.website).to.equal('https://ragingflame.co.za/content-search');
-      expect(state.address).to.be.a('null');
-      expect(state.port).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
-      expect(state.totalRequests).to.equal(1);
-      expect(state.totalDownTimes).to.equal(0);
-      expect(state.lastRequest).to.be.gt(0);
-      expect(state.lastDownTime).to.be.a('null');
-      expect(state.title).to.be.a('string');
+      expect(monitor.id).to.exist
+      expect(monitor.title).to.be.a('string')
+      expect(monitor.createdAt).to.be.gt(0)
+      expect(monitor.interval).to.equal(500)
+      expect(state.active).to.be.true
+      expect(state.isUp).to.be.true
+      expect(state.totalRequests).to.equal(1)
+      expect(state.totalDownTimes).to.equal(0)
+      expect(state.lastRequest).to.be.gt(0)
+      expect(state.lastDownTime).to.be.a('null')
 
-      ping.stop();
+      expect(res.statusCode).to.equal(200)
 
-      done();
+      ping.stop()
+      done()
     });
 
-    ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
-      ping.stop();
-      done(new Error(res.statusMessage));
+    ping.on('down', function (monitor: Monitor, response: MonitorResponse) {
+      ping.stop()
+      done(new Error('Should have never got here'))
     });
   });
 
   it('should fail content search', function (done) {
+    this.timeout(10000)
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/content-search-2',
-      interval: 0.1,
-      expect: {
-        contentSearch: '123'
-      }
+      id: 1,
+      title: 'Test',
+      createdAt: 1,
+      protocol: 'web',
+      protocolOptions: {
+        url:'https://ragingflame.co.za/content-search',
+        httpOptions: { },
+        expect: {
+          statusCode: 200,
+          contentSearch: '123'
+        }
+      },
+      interval: 500,
+    })
+
+    ping.on('up', function (monitor: Monitor, response: MonitorResponse) {
+      ping.stop()
+      done(new Error('Should have never got here'))
     });
 
-    ping.on('up', function (res, state) {
-      expect(res.statusCode).to.equal(500);
+    ping.on('down', function (monitor: Monitor, response: MonitorResponse) {
+      const res = response.data
+      const state = monitor.getState()
 
-      // check state props
-      expect(state.id).to.be.a('null');
-      expect(state.createdAt).to.be.gt(0);
-      expect(state.active).to.be.true;
-      expect(state.isUp).to.be.false;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/content-search-2');
-      expect(state.website).to.equal('https://ragingflame.co.za/content-search-2');
-      expect(state.address).to.be.a('null');
-      expect(state.port).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
-      expect(state.totalRequests).to.equal(1);
-      expect(state.totalDownTimes).to.equal(0);
-      expect(state.lastRequest).to.be.gt(0);
-      expect(state.lastDownTime).to.be.a('null');
-      expect(state.title).to.be.a('string');
-
-      ping.stop();
-
-      done(new Error('Should have never got here'));
-    });
-
-    ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
-      ping.stop();
-      done();
-    });
-  });
+      expect(res.statusCode).to.equal(200)
+      expect(state.totalRequests).to.equal(1)
+      ping.stop()
+      done()
+    })
+  })
 
   after(function (done) {
     tcpServer.close();
     done();
     process.exit();
-  });
-});
+  })
+})

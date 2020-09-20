@@ -2,9 +2,10 @@
 
 import net from 'net'
 
-const server = net.createServer((connection) => {});
+const server: net.Server = net.createServer()
 
-server.on('error', (err) => {
+server.once('error', (err) => {
+  server.close()
   throw err;
 })
 

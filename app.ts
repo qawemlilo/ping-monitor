@@ -1,5 +1,4 @@
-'use strict';
+'use strict'
 
-import * as app from './lib/monitor'
-
+import * as app from './src/monitor'
 export default app
