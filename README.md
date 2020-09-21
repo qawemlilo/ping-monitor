@@ -1,392 +1,298 @@
-# Uptime Event Emitter
+# Availability Monitor
 
-An uptime event emitter for http and tcp servers.
+An availability monitoring module to see the current status of web services. Currently, the only protocols supported are TCP and HTTP/HTTPS.
 
+The initial codebase was forked from [qawemlilo](https://github.com/qawemlilo)'s [ping-monitor](https://github.com/qawemlilo/ping-monitor).
+From here, the codebase was rewritten to suit my own personal projects. 
+They both exist to do the same thing but work differently under the hood.
 
-### Installation
+Some of these changes include:
+*  Rewrote the codebase to Typescript. 
+*  Follows the Object-oriented programming (OOP) paradigm.
+*  Use [got](https://github.com/sindresorhus/got) instead of the native Node `http` and `https` modules. The benefits include:
+   * Handles all the weirdness the HTTP/HTTPS protocol can produce.
+   * Supports Async / Await, avoiding callback-hell!
+   * Built-in timing - Times various phases of the HTTP request process, so we don't have to.
+   * Customizable - Users of this library can specify all the little details when handling requests. 
+     E.g. Should we SSL verify or not? Should we follow redirects or not? etc.
+     For more information on the options available, go to [got](https://github.com/sindresorhus/got).
+
+## Installation
 ```
-npm install ping-monitor
+npm install availability-monitor
 ```
 
 
-### How to use
+## Quick Usage
 ```javascript
-const Monitor = require('ping-monitor');
+const Monitor = require('availability-monitor')
 
-const myWebsite = new Monitor(options);
+const bbcNewsMonitor = new Monitor({
+    id: 1,
+    title: 'BBC News',
+    createdAt: Date.now(),
+    protocol: 'web',
+    protocolOptions: {
+        url: 'https://bbcnews.com',
+        httpOptions: {
+            timeout: 30000 // 30 Seconds
+        }
+    },
+    interval: 5
+})
 
-myWebsite.on(event, function(response, state) {
+bbcNewsMonitor.on('up', function(monitor, response) {
     // Do something with the response
-});
+    console.log(`${monitor.title} is up. Response Time: ${response.responseTime}ms`)
+})
 ```
-
-
-### Options
-
-- `website` <String> - The url of the website to be monitored (required is monitoring a website).
-- `address` <String> - Server address to be monitored (required if monitoring tcp server).
-- `port` <Integer> - Server port (required if monitoring tcp server).
-- `interval` <Integer> (defaults to 15) - time interval (in minutes) for polling requests.
-
-** New Options: ** v0.4.1
-
-The new options give you more control to define your http endpoints.
-
-- `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
-- `expect` <Object> - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
-
-```javascript
-
-// http Get
-const myApi = new Monitor({
-    website: 'http://api.ragingflame.co.za',
-    title: 'Raging Flame',
-    interval: 10 // minutes
-
-    // new options
-    httpOptions: {
-      path: '/users',
-      method: 'get',
-      query: {
-        id: 3
-      }
-    },
-    expect: {
-      statusCode: 200
-    }
-});
-
-// http Post
-const myApi = new Monitor({
-    website: 'http://api.ragingflame.co.za',
-    title: 'Raging Flame',
-    interval: 10 // minutes
-
-    // new options
-    httpOptions: {
-      path: '/users',
-      method: 'post',
-      query: {
-        first_name: 'Que',
-        last_name: 'Fire'
-      },
-      body: 'Hello World!'
-    },
-    expect: {
-      statusCode: 200
-    }
-});
-```
-
-
-
-### Emitted Events
-
-- `up` - All is good website is up.
-- `down` - Not good, website is down.
-- `stop` - Fired when the monitor has stopped.
-- `error` - Fired when there's an error
-- `timeout` - Fired when the http request times out
-
-
-
-### response object
-
-- `object.website` - website being monitored.
-- `object.address` - server address being monitored.
-- `object.port` - server port.
-- `object.time` - (aka responseTime) request response time.
-- `object.responseMessage` -  http response code message.
-- `object.responseTime` - response time in milliseconds.
-- `object.httpResponse` - native http/s response object.
-
-### state object
-
-- `object.id` <Integer> `null` - monitor id, useful when persistence.
-- `object.title` <String> `null` - monitor label for humans.
-- `object.active` <Boolean> `true` - flag to indicate if monitor is active.
-- `object.isUp` <Boolean> `true` - flag to indicate if monitored server is up or down.
-- `object.createdAt` <Date.now()> - monitor creation date.
-- `object.isUp` <Boolean> `true` - current uptime status of the monitor.
-- `object.port` <Integer> `null` - server port.
-- `object.host` <String> `null` - server / website address.
-- `object.totalRequests` <Integer> `0` - total requests made.
-- `object.totalDownTimes` <Integer> `0` - total number of downtimes.
-- `object.lastDownTime` <Date.now()> - time of last downtime.
-- `object.lastRequest` <Date.now()> - time of last request.
-- `object.interval` <Integer> `5` - polling interval in minutes
-- `object.website` <String> `null`  - website being monitored.
-- `object.address` <String> `null`  - server address being monitored.
-- `object.port` <Integer> `null` - server port.
-
-### Website Example
-```javascript
-'use strict';
-
-const Monitor = require('ping-monitor');
-
-
-const myMonitor = new Monitor({
-    website: 'http://www.ragingflame.co.za',
-    title: 'Raging Flame',
-    interval: 10 // minutes
-});
-
-
-myMonitor.on('up', function (res, state) {
-    console.log('Yay!! ' + res.website + ' is up.');
-});
-
-
-myMonitor.on('down', function (res) {
-    console.log('Oh Snap!! ' + res.website + ' is down! ' + res.statusMessage);
-});
-
-
-myMonitor.on('stop', function (website) {
-    console.log(website + ' monitor has stopped.');
-});
-
-
-myMonitor.on('error', function (error) {
-    console.log(error);
-});
-```
-
-### TCP Example
-```javascript
-'use strict';
-
-const Monitor = require('ping-monitor');
-
-
-const myMonitor = new Monitor({
-    address: '162.13.124.139',
-    port: 8080,
-    interval: 5 // minutes
-});
-
-
-myMonitor.on('up', function (res, state) {
-    console.log('Yay!! ' + res.address + ':' + res.port + ' is up.');
-});
-
-
-myMonitor.on('down', function (res, state) {
-    console.log('Oh Snap!! ' + res.address + ':' + res.port + ' is down! ');
-});
-
-
-myMonitor.on('stop', function (res, state) {
-    console.log(res.address + ' monitor has stopped.');
-});
-
-
-myMonitor.on('error', function (error, res) {
-    console.log(error);
-});
-
-
-myMonitor.on('timeout', function (error, res) {
-    console.log(error);
-});
-```
-
-
-### Change log
-
-
-#### v0.5.0
-
-
-**Changes**
-
- - Added `timeout` event to Monitor instance. This event is passed from the htt/s module.
-
-```javascript
-  myMonitor.on('timeout', function (error, res) {
-    console.log(error);
-  });
-  
-  // also make sure that you are handling the error event 
-  myMonitor.on('error', function (error, res) {
-    console.log(error);
-  });
-```
-
- - Dependencies update
-
-*Please note:* When the `timeout` event is fired, it is followed by the `error` event which is created when we manually abort the http request.
-
-
-#### v0.4.4
-
-Dependencies update
-
-#### v0.4.3
-
-
-**Changes**
-
- - Added the native http/s response object in the `Monitor` response object
- - Added Post support in your Monitor instances.
-
-You can now include a body in your `httpOptions`:
-
-```javascript
-// http Post
-const myApi = new Monitor({
-    website: 'http://api.ragingflame.co.za',
-    title: 'Raging Flame',
-    interval: 10 // minutes
-
-    // new options
-    httpOptions: {
-      path: '/users',
-      method: 'post',
-      query: {
-        first_name: 'Que',
-        last_name: 'Fire'
-      },
-      body: 'Hello World!'
-    },
-    expect: {
-      statusCode: 200
-    }
-});
-
-myApi.on('up', function (res, state) {
-  /*
-    response {
-      responseTime <Integer> milliseconds
-      responseMessage <String> response code message
-      website <String> url being monitored.
-      address <String> server address being monitored
-      port <Integer>
-      httpResponse <Object> native http/s response object
-    }
-
-    state {
-      createdAat <Date.now()>
-      isUp <Boolean>
-      host <String>
-      port: <Integer>
-      totalRequests <Integer>
-      lastDownTime <Date.now()>
-      lastRequest <Date.now()>
-      interval <Integer>
-    }
-  */
-});
-```
-
-#### v0.4.2
-
-
-**Changes**
-
-Added some utility methods used when updating a monitor and added immediate ping on monitor creation.
-
-  - Added `pause` method to Monitor.
-  - Added `unpause` method to Monitor.
-
-
-*Tip:* See [options](https://github.com/qawemlilo/node-monitor#options) section to learn how they work.
-
-#### v0.4.1
-
-
-**Changes**
-
-Changes in v0.4.1 give you more control to define your http requests and what response to expect.
-
-
-  - Added `httpOptions` prop to Monitor instance options.
-  - Added `expect` prop for naming your your monitor.
-
-*Tip:* See [options](https://github.com/qawemlilo/node-monitor#options) section to learn how they work.
-
-
-#### v0.4.0
-
-
-**Changes**
-
-Most of the changes introduced in this version were introduced to support database persistence.
-
-  - Added `id` prop, useful when you add database persistence.
-  - Added `title` prop for naming your your monitor.
-  - Added `active` prop to flag if monitoring is active.
-  - Added `totalDownTimes` prop for keeping record of total downtimes.
-  - Added `isUp` prop to indicate if monitored server is up or down.
-  - Added `website`, `address`, `totalDownTimes`, `active`, `active` props to the emitted `state` object
-  - Added eslinting (2015) and cleaned up the code a bit
-  - *breaking change: * the `stop` event now takes a callback that accepts 2 arguments, `response` && `state` (same as the `up` and `down` events).
-
-
-#### v0.3.1
-
-**New Feature**
-
-  - Added a `state` object in the response that returns useful monitoring data
-
-  - **`State` object**
-
-```javascript
-  const Monitor = require('ping-monitor');
-
-  const myMonitor = new Monitor(options);
-
-  myMonitor.on(event, function(response, state) {
-    /*
-      response {...}  
-      state {
-        createdAt <Date.now()>
-        isUp <Boolean>
-        host <String>
-        port: <Integer>
-        totalRequests <Integer>
-        lastDownTime <Date.now()>
-        lastRequest <Date.now()>
-        interval <Integer>
-      }
-    */
-  });
-```
-
-**Changes made**
-  - The event handler now accepts to arguments `response` and `state`, please see above examples.
-
-
-
-#### v0.3.0
-
-  - Brought back `error` event - required for handling module usage related errors
-  - Added `responseTime` to the response object
-  - Added support for tcp servers
-
-
-#### v0.2.0
-
-  - Code cleanup and upgrade to ES6
-  - Removed the `error` event - now being handled internally
-  - Bug fixed: [Unreachable resource not handled #9](https://github.com/qawemlilo/node-monitor/issues/9)
-
 
 ## Testing
 ```
 npm test
 ```
 
+## Advanced Usage
+### Constructor Options
+The constructor accepts an `object` Object, used to specify the Monitor settings when creating a Monitor instance. Below describes the fields that can be accepted.
 
-### License
+#### id
+_Type:_ `number | string`
 
-(MIT License)
+_Description:_
 
-Copyright (c) 2013 - 2018 Qawelesizwe Mlilo <qawemlilo@gmail.com>
+An identifier for this Monitor instance. Usually this identifier is a reference from sort of database, but it can be anything you want.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+_Example:_
+```javascript
+// Using Numbers
+1
+// Using String (UUID in our case)
+'954f330d-9376-43d4-830f-3b4d1f615ef'
+```
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#### createdAt
+_Type:_ `number`
 
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+_Default:_ `Date.now()`
+
+_Description:_
+
+The date this Monitor was created.
+
+#### title
+_Type:_ `string`
+
+_Description:_
+
+A human-readable identifier for this Monitor instance.
+
+_Example:_
+
+If we were checking availability of `https://bbcnews.com`, our name could be `BBC News`
+
+
+#### protocol
+_Type:_ `SupportedProtocol`
+
+`SupportedProtocol` is typed to accept one of the following:
+* `web`
+* `tcp`
+
+_Description:_
+
+Specifies the protocol used when checking the availability of a web-service.
+
+#### protocolOptions
+_Type:_ `SupportedProtocolOptions`
+
+`SupportedProtocolOptions` is typed to accept one of the following:
+* `WebProtocolOptions`
+* `TcpProtocolOptions`
+
+`WebProtocolOptions` is typed as an _object_ and acccepts the following:
+* `url`
+  
+  _Type:_ `string`
+  
+  _Description:_
+  
+  The URL we would like to poll.
+* `httpOptions`
+
+  _Type:_ `Options`
+  
+  _Description:_
+  
+  Visit [got's options](https://github.com/sindresorhus/got#options) and [NodeJS's https.request options](https://nodejs.org/api/https.html#https_https_request_options_callback) which will show you all the possible fields that are accepted.
+
+* `expect`
+  
+  _Type:_ `object | undefined`
+
+  _Description:_
+
+  Sometimes, connecting sucessfully is not enough. We require details to be expected in the response. This is where we specify such things.
+
+  _Items:_
+  * `statusCode`
+    
+    _Type:_ `number | undefined`
+
+    _Description:_
+
+    Specify a specific status code that we expect to be seen in the response.
+
+  * `contentSearch`
+    _Type:_ `string | undefined`
+
+    _Description:_
+
+    Specify a specific substring that we expect to be seen in the response body.
+
+`TcpProtocolOptions` is typed as an _object_ and acccepts the following:
+* `host`
+ 
+  _Type:_ `string`
+  
+  _Description:_
+
+  The host you are connecting to.
+* `port`
+  
+  _Type:_ `number`
+  
+  _Description:_
+
+  The port you are connecting to on the _host_.
+* `options`
+  
+  _Type:_ `Record<string, any> | undefined`
+  
+  _Description:_
+
+  Placeholder. This is not used for anything yet.
+
+* `expect`
+  
+  _Type:_ `Record<string, any> | undefined`
+  
+  _Description:_
+
+  Placeholder. This is not used for anything yet.
+  
+
+#### interval
+_Type_: `number`
+
+_Default_: `5` representing 5 minutes.
+
+_Description:_
+
+Number of minutes to wait before polling the web service again.
+
+
+## Emitted Events
+This module inherits `EventEmitter`. This means this module can be easily intergrated in other applications by listening to the events below:
+- `up` - Web service is running successfully.
+- `down` - Web service failed when expecting certain elements to be present in the response OR failed completely.
+- `error` - Fired when there's an error caught.
+- `timeout` - Fired when the request times out.
+- `start` - Fired when the monitor has started.
+- `stop` - Fired when the monitor has stopped.
+- `restart` - Fired when the monitor is restarting.
+- `ping` - Fired after the monitor has pinged the web-service. Occurs regardless if the web-service is up or down, produced an error or timed out.
+
+For `start`, `stop`, `restart`, and `ping` events, only one argument is presented to event listeners, this being the `Monitor` instance itself.
+
+For `error`, `timeout`, `up`, and `down` events, two arguments are presented to event listeners, this being the `Monitor` instance itself, and a `MonitorResponse` object.
+
+### MonitorResponse object
+
+#### isUp
+_Type:_ `boolean`
+
+_Description:_
+
+A high-level approach to clarify if a web service is running or not.
+
+#### responseTime
+_Type:_ `number`
+
+_Default:_ 0
+
+_Description:_
+
+The time taken from the start of the request to the end. If a value can not be determine due to some error in the request process, this will be set to 0.
+
+#### error
+_Type:_ `Error | undefined`
+
+_Description:_
+
+Set when `timeout` and `error` are triggered. Represents the error that was caught.
+
+#### data
+_Type:_ `any | undefined`
+
+_Description:_
+
+Generally, the response of a web service (such as a `got.Response` for Web Handlers), although does not have to be. Guranteed to exist when `up` and `down` are emitted.
+
+
+#### traceroute
+_Type:_ `any | undefined`
+
+_Description:_ TBC
+
+
+### Monitor.getState() / State object
+
+Contains some statistics and the state of this monitoring object.
+
+#### active
+_Type:_ `boolean`
+
+_Description:_
+
+Whether monitoring is actively polling or not.
+
+#### isUp
+_Type:_ `boolean`
+
+_Description:_
+
+A high-level approach to clarify if a web service is running or not.
+
+
+#### totalRequests
+_Type:_ `number`
+
+_Description:_
+
+Number of total requests made.
+
+#### totalDownTimes
+_Type:_ `number`
+
+_Description:_
+
+Number of total number of downtimes.
+
+#### lastDownTime
+_Type:_ `number`
+
+_Default:_ `Date.now()`
+
+_Description:_
+
+Time of last downtime.
+
+#### lastDownTime
+_Type:_ `number`
+
+_Default:_ `Date.now()`
+
+_Description:_
+
+Time of last request.
