@@ -9,13 +9,14 @@ They both exist to do the same thing but work differently under the hood.
 Some of these changes include:
 *  Rewrote the codebase to Typescript. 
 *  Follows the Object-oriented programming (OOP) paradigm.
-*  Use [got](https://github.com/sindresorhus/got) instead of the native Node `http` and `https` modules. The benefits include:
+*  Uses [got](https://github.com/sindresorhus/got) instead of the native Node `http` and `https` modules. The benefits include:
    * Handles all the weirdness the HTTP/HTTPS protocol can produce.
    * Supports Async / Await, avoiding callback-hell!
    * Built-in timing - Times various phases of the HTTP request process, so we don't have to.
    * Customizable - Users of this library can specify all the little details when handling requests. 
      E.g. Should we SSL verify or not? Should we follow redirects or not? etc.
      For more information on the options available, go to [got](https://github.com/sindresorhus/got).
+*  Added ability to use [puppeteer](https://github.com/puppeteer/puppeteer) for monitoring on complex web-services such as Single Page Applications (SPA), web-services that rely on client-side JavaScript execution, etc.
 
 ## Installation
 ```
@@ -262,7 +263,9 @@ Generally, the response of a web service (such as a `got.Response` for Web Handl
 #### traceroute
 _Type:_ `any | undefined`
 
-_Description:_ TBC
+_Description:_
+
+When the engine used is `puppeteer`, this variable holds a HTTP Archive format (HAR) that can be used to analyse the browser's network activity. To grahpically view a HAR, use (Google's HAR Analyzer)[https://toolbox.googleapps.com/apps/har_analyzer/].
 
 
 ### Monitor.getState() / State object
