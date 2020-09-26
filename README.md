@@ -35,6 +35,7 @@ const bbcNewsMonitor = new Monitor({
     protocol: 'web',
     protocolOptions: {
         url: 'https://bbcnews.com',
+        engine: 'got',
         httpOptions: {
             timeout: 30000 // 30 Seconds
         }
