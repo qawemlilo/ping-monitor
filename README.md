@@ -118,6 +118,23 @@ _Type:_ `SupportedProtocolOptions`
   _Description:_
   
   The URL we would like to poll.
+
+* `engine`
+  
+  _Type:_ `'got' | 'puppeteer'`
+  
+  _Description:_
+  
+  The library to use when checking the availablity. Different libraries are used for different situations.
+  
+  Use `got` for quick and easy availability monitoring on basic web services. This option is suitable for server-side-rendered/static websites, APIs, and any service that is not reliant on the execution of client-side JavaScript.
+  
+  Use `puppeteer` when the above doesn't work. Puppeteer provides control of a Chromium Browser over the DevTools Protocol. Essentially, you are checking availability via a fully-functional browser. This is helpful for SPA websites, dynamic content, producing a HAR Trace (which is done automatically).
+
+  Technically, you could use `puppeteer` for all web-based monitoring, but it is inefficient to do so as you are loading a full-featured browser. This could impact performance negatively. and may increase your system requirements rapidly depending on how many web services you plan to monitor, you may need to increase your memory capacity.
+
+  > Note: You do not have to install a Chromium browser yourself to use `puppeteer`. A supported version will be installed when running `npm install`.
+
 * `httpOptions`
 
   _Type:_ `Options`
@@ -125,6 +142,8 @@ _Type:_ `SupportedProtocolOptions`
   _Description:_
   
   Visit [got's options](https://github.com/sindresorhus/got#options) and [NodeJS's https.request options](https://nodejs.org/api/https.html#https_https_request_options_callback) which will show you all the possible fields that are accepted.
+
+  Note, if your `engine` of choice is `puppeteer`, the only option that can be used is `timeout`. `timeout` must be `number | undefined`. Using `Delays` will be ignored, and timeout will be set to the default instead (30000 ms ~ 30 seconds).
 
 * `expect`
   

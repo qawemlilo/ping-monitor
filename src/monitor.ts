@@ -10,6 +10,7 @@ import { MonitorError, MonitorHandler, MonitorResponse } from './protocols'
 
 export interface WebProtocolOptions {
   url: string
+  engine: 'got' | 'puppeteer'
   httpOptions: Options
   expect?: { contentSearch?: string; statusCode: number }
 }

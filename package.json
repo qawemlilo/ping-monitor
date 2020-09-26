@@ -34,6 +34,7 @@
     "@types/chai": "^4.2.12",
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.10.0",
+    "@types/puppeteer": "^3.0.2",
     "chai": "^4.2.0",
     "eslint": "^5.16.0",
     "mocha": "^7.1.2",
@@ -42,6 +43,8 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {
-    "got": "^11.6.2"
+    "got": "^11.6.2",
+    "puppeteer": "^5.3.1",
+    "puppeteer-har": "^1.1.2"
   }
 }
