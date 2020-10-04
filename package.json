@@ -1,7 +1,7 @@
 {
   "name": "availability-monitor",
   "version": "1.0.0",
-  "description": "A libary to monitor the availablity of web services. Supports various protocols, including HTTP, HTTPS, TCP.",
+  "description": "A library to monitor the availablity of web services. Supports various protocols, including HTTP, HTTPS, TCP.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
