@@ -28,7 +28,7 @@ myWebsite.on(event, function(response, state) {
 - `port` <Integer> - Server port (required if monitoring tcp server).
 - `interval` <Integer> (defaults to 15) - time interval (in minutes) for polling requests.
 
-** New Options: ** v0.4.1
+### New Options: v0.4.1
 
 The new options give you more control to define your http endpoints.
 
@@ -195,6 +195,31 @@ myMonitor.on('timeout', function (error, res) {
 
 ### Change log
 
+#### v0.5.1
+
+
+**Changes**
+
+ - Added Support for content search in HTTP/HTTPS - courtesy of [@pbombnz](https://github.com/pbombnz)
+
+```javascript
+  let ping = new Monitor({
+    website: 'https://ecommorce-shop.com/playstation5',
+    interval: 0.1,
+    expect: {
+      contentSearch: 'In stock'
+    }
+  });
+
+  ping.on('up', function (res, state) {
+    console.log('Yay!! Content cantains the phrase "In stock"');
+  });
+  
+
+  ping.on('error', function (error, res) {
+    console.error(error);
+  });
+```
 
 #### v0.5.0
 
