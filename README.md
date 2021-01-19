@@ -23,17 +23,20 @@ myWebsite.on(event, function(response, state) {
 
 ### Options
 
-- `website` <String> - The url of the website to be monitored (required is monitoring a website).
-- `address` <String> - Server address to be monitored (required if monitoring tcp server).
-- `port` <Integer> - Server port (required if monitoring tcp server).
-- `interval` <Integer> (defaults to 15) - time interval (in minutes) for polling requests.
-
-### New Options: v0.4.1
-
-The new options give you more control to define your http endpoints.
-
+- `address` <String> - Server or website address to be monitored (required)
+- `port` <Integer> - Server port (optional).
+- `interval` <Integer> (defaults to 15 mins) - time interval for polling requests.
+- `units` (defaults to minutes) - interval time units - [milliseconds, seconds, minites, hours]
 - `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
-- `expect` <Object> - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
+- `expect` <Object>  - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
+
+#### Expect Object 
+```javascript
+expect {
+  statusCode: Integer, // http status codes
+  contentSearch: String
+}
+```
 
 ```javascript
 

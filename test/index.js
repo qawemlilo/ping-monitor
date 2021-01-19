@@ -64,7 +64,8 @@ describe('Monitor', function () {
 
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/must-pass',
-      interval: 0.1
+      interval: 1,
+      intervalUnit: 'seconds', 
     });
 
     ping.on('up', function (res, state) {
@@ -79,7 +80,47 @@ describe('Monitor', function () {
       expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
+      expect(state.interval).to.equal(1);
+      expect(state.totalRequests).to.equal(1);
+      expect(state.totalDownTimes).to.equal(0);
+      expect(state.lastRequest).to.be.gt(0);
+      expect(state.lastDownTime).to.be.a('null');
+      expect(state.title).to.be.a('string');
+
+      ping.stop();
+
+      done();
+    });
+
+    ping.on('down', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
+      ping.stop();
+      done(new Error(res.statusMessage));
+    });
+  });
+
+  it('should pass', function (done) {
+
+    let ping = new Monitor({
+      address: 'https://ragingflame.co.za/must-pass',
+      interval: 300,
+      intervalUnit: 'milliseconds', 
+    });
+
+    ping.on('up', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+
+      // check state props
+      expect(state.id).to.be.a('null');
+      expect(state.created_at).to.be.gt(0);
+      expect(state.active).to.be.true;
+      expect(state.isUp).to.be.true;
+      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass');
+      expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
+      expect(state.address).to.be.a('null');
+      expect(state.port).to.be.a('null');
+      expect(state.interval).to.equal(1);
       expect(state.totalRequests).to.equal(1);
       expect(state.totalDownTimes).to.equal(0);
       expect(state.lastRequest).to.be.gt(0);
@@ -285,7 +326,8 @@ describe('Monitor', function () {
     try {
       let pingHttp = new Monitor({
         website: 'https://ragingflame.co.za/test-http-options',
-        interval: 0.1,
+        interval: 500,
+        intervalUnit: 'milliseconds',
         httpOptions: {
           path: '/test-http-options/users'
         },
