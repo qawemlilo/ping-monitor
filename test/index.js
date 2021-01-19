@@ -65,7 +65,9 @@ describe('Monitor', function () {
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/must-pass',
       interval: 1,
-      intervalUnit: 'seconds', 
+      config: {
+        intervalUnits: 'seconds'
+      } 
     });
 
     ping.on('up', function (res, state) {
