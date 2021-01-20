@@ -21,6 +21,11 @@ myWebsite.on(event, function(response, state) {
 ```
 
 
+### Methods
+
+- `stop` - stop an active monitor 
+- `restart` - stop and start an active monitor 
+
 ### Options
 
 - `address` <String> - Server or website address to be monitored (required)
