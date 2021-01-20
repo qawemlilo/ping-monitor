@@ -56,7 +56,6 @@ const myApi = new Monitor({
       intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
     },
 
-    // new options
     httpOptions: {
       path: '/users',
       method: 'get',
@@ -73,9 +72,12 @@ const myApi = new Monitor({
 const myApi = new Monitor({
     website: 'http://api.ragingflame.co.za',
     title: 'Raging Flame',
-    interval: 10 // minutes
+    interval: 10, 
+    
+    confing: {
+      intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
+    },
 
-    // new options
     httpOptions: {
       path: '/users',
       method: 'post',
