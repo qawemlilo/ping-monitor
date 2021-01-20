@@ -29,6 +29,7 @@ myWebsite.on(event, function(response, state) {
 - `units` (defaults to minutes) - interval time units - [milliseconds, seconds, minites, hours]
 - `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
 - `expect` <Object>  - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
+- `config` <Object> { intervalUnits <String> }  - configuration for your Monitor, currently supports one property, `intervalUnits`. `intervalUnits` specifies which to time unit you want your Monitor to use. There are 4 options, `milliseconds`, `seconds`, `minutes` (default), and `hours`.
 
 #### Expect Object 
 ```javascript
@@ -44,7 +45,11 @@ expect {
 const myApi = new Monitor({
     website: 'http://api.ragingflame.co.za',
     title: 'Raging Flame',
-    interval: 10 // minutes
+    interval: 5,
+
+    confing: {
+      intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
+    },
 
     // new options
     httpOptions: {
@@ -197,6 +202,32 @@ myMonitor.on('timeout', function (error, res) {
 
 
 ### Change log
+
+#### v0.5.2
+
+
+**Changes**
+
+ - Added support for configuring interval units
+
+```javascript
+  let ping = new Monitor({
+    website: 'https://webservice.com',
+    interval: 1,
+    config: {
+      intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
+    }
+  });
+
+  ping.on('up', function (res, state) {
+    console.log('Yay!! Service is up');
+  });
+  
+
+  ping.on('error', function (error, res) {
+    console.error(error);
+  });
+```
 
 #### v0.5.1
 

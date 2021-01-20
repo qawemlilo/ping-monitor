@@ -5,6 +5,7 @@
 const expect = require('chai').expect;
 const nock = require('nock');
 const Monitor = require('../lib/monitor');
+const Utils = require('../lib/utils');
 let tcpServer = null;
 
 
@@ -12,6 +13,10 @@ describe('Monitor', function () {
   before(function () {
     nock('https://ragingflame.co.za')
       .get('/must-pass')
+      .reply(200, 'page is up');
+
+    nock('https://ragingflame.co.za')
+      .get('/must-pass-1')
       .reply(200, 'page is up');
 
     nock('https://ragingflame.co.za')
@@ -105,9 +110,11 @@ describe('Monitor', function () {
   it('should pass', function (done) {
 
     let ping = new Monitor({
-      address: 'https://ragingflame.co.za/must-pass',
+      website: 'https://ragingflame.co.za/must-pass-1',
       interval: 300,
-      intervalUnit: 'milliseconds', 
+      config: {
+        intervalUnits: 'milliseconds'
+      } 
     });
 
     ping.on('up', function (res, state) {
@@ -118,11 +125,11 @@ describe('Monitor', function () {
       expect(state.created_at).to.be.gt(0);
       expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass');
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
+      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass-1');
+      expect(state.website).to.equal('https://ragingflame.co.za/must-pass-1');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
-      expect(state.interval).to.equal(1);
+      expect(state.interval).to.equal(300);
       expect(state.totalRequests).to.equal(1);
       expect(state.totalDownTimes).to.equal(0);
       expect(state.lastRequest).to.be.gt(0);
@@ -519,6 +526,32 @@ describe('Monitor', function () {
   after(function (done) {
     tcpServer.close();
     done();
+  });
+});
+
+
+describe('Utils', function() {
+  describe('#intervalUnits()', function() {
+    it('should convert intervalUnits', function() {
+      const interval = 1;
+  
+      expect(Utils.intervalUnits(interval, 'milliseconds')).to.equal(1);
+      expect(Utils.intervalUnits(interval, 'seconds')).to.equal(1000);
+      expect(Utils.intervalUnits(interval, 'minutes')).to.equal(60000);
+      expect(Utils.intervalUnits(interval, 'hours')).to.equal(3600000);
+    });
+  });
+
+
+  describe('#getFormatedDate()', function() {
+    it('should convert intervalUnits', function() {
+      expect(Utils.getFormatedDate()).to.include('2021');
+    });
+  });
+
+  after(function (done) {
+    done();
     process.exit();
   });
 });
+
