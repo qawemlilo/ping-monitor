@@ -28,7 +28,8 @@ myWebsite.on(event, function(response, state) {
 
 ### Options
 
-- `address` <String> - Server or website address to be monitored (required)
+- `address` <String> - Server address to be monitored
+- `website` <String> - Website address to be monitored
 - `port` <Integer> - Server port (optional).
 - `interval` <Integer> (defaults to 15 mins) - time interval for polling requests.
 - `units` (defaults to minutes) - interval time units - [milliseconds, seconds, minites, hours]
