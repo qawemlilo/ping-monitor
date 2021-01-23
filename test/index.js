@@ -31,7 +31,10 @@ describe('Monitor', function () {
     nock('https://ragingflame.co.za')
       .persist()
       .get('/test-redirect')
-      .reply(301, 'page has be redirected up');
+      .reply(301, undefined, {
+        'Location': 'http://redirecter.com/must-pass-2'
+      });
+
 
     nock('https://ragingflame.co.za')
       .get('/not-active')
@@ -65,7 +68,7 @@ describe('Monitor', function () {
     tcpServer = require('./tcpServer');
   });
 
-  it('should pass', function (done) {
+  it('#1 should pass', function (done) {
 
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/must-pass',
@@ -81,9 +84,7 @@ describe('Monitor', function () {
       // check state props
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
-      expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass');
       expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
@@ -107,7 +108,7 @@ describe('Monitor', function () {
     });
   });
 
-  it('should pass', function (done) {
+  it('#2 should pass', function (done) {
 
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/must-pass-1',
@@ -123,9 +124,7 @@ describe('Monitor', function () {
       // check state props
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
-      expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass-1');
       expect(state.website).to.equal('https://ragingflame.co.za/must-pass-1');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
@@ -150,7 +149,7 @@ describe('Monitor', function () {
   });
 
 
-  it('should throw error', function (done) {
+  it('#3 should throw error', function (done) {
     try {
       let pingdom = new Monitor({
         website: 'https://ragingflame.co.za/must-pass',
@@ -183,9 +182,7 @@ describe('Monitor', function () {
       // check state props
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
-      expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-pass-2');
       expect(state.website).to.equal('https://ragingflame.co.za/must-pass-2');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
@@ -214,7 +211,7 @@ describe('Monitor', function () {
     });
   });
 
-  it('should fail', function (done) {
+  it('#4 should fail', function (done) {
 
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/must-fail',
@@ -233,9 +230,7 @@ describe('Monitor', function () {
       // check state props
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
-      expect(state.active).to.be.true;
       expect(state.isUp).to.be.false;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/must-fail');
       expect(state.website).to.equal('https://ragingflame.co.za/must-fail');
       expect(state.address).to.be.a('null');
       expect(state.interval).to.equal(0.1);
@@ -250,7 +245,7 @@ describe('Monitor', function () {
     });
   });
 
-  it('should handle the stop event', function (done) {
+  it('#5 should handle the stop event', function (done) {
 
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/must-pass-3',
@@ -265,7 +260,7 @@ describe('Monitor', function () {
     ping.stop();
   });
 
-  it('should connect to tcp', function (done) {
+  it('#6 should connect to tcp', function (done) {
 
     let ping = new Monitor({
       address: '127.0.0.1',
@@ -288,7 +283,7 @@ describe('Monitor', function () {
   });
 
 
-  it('should test redirect', function (done) {
+  it('#7 should test redirect', function (done) {
     try {
       let pingRedirect = new Monitor({
         website: 'https://ragingflame.co.za/test-redirect',
@@ -298,13 +293,11 @@ describe('Monitor', function () {
         }
       });
 
-      ping.on('up', function (res, state) {
+      pingRedirect.on('up', function (res, state) {
         expect(res.statusCode).to.equal(301);
         expect(state.id).to.be.a('null');
         expect(state.created_at).to.be.gt(0);
-        expect(state.active).to.be.true;
         expect(state.isUp).to.be.true;
-        expect(state.host).to.be.equal('https://ragingflame.co.za/test-redirect');
         expect(state.website).to.equal('https://ragingflame.co.za/test-redirect');
         expect(state.address).to.be.a('null');
         expect(state.port).to.be.a('null');
@@ -315,13 +308,13 @@ describe('Monitor', function () {
         expect(state.lastDownTime).to.be.a('null');
         expect(state.title).to.be.a('string');
 
-        ping.stop();
+        pingRedirect.stop();
         done();
       });
 
-      ping.on('down', function (res, state) {
+      pingRedirect.on('down', function (res, state) {
         expect(res.statusCode).to.equal(301);
-        ping.stop();
+        pingRedirect.stop();
         done(new Error(res.statusMessage));
       });
     }
@@ -331,7 +324,7 @@ describe('Monitor', function () {
   });
 
 
-  it('should test httpOptions', function (done) {
+  it('#8 should test httpOptions', function (done) {
     try {
       let pingHttp = new Monitor({
         website: 'https://ragingflame.co.za/test-http-options',
@@ -366,7 +359,7 @@ describe('Monitor', function () {
     }
   });
 
-  it('should post body', function (done) {
+  it('#9 should post body', function (done) {
     try {
       let pingHttp = new Monitor({
         website: 'https://ragingflame.co.za',
@@ -402,36 +395,38 @@ describe('Monitor', function () {
     }
   });
 
-  it('should timeout request', function (done) {
+  it('#10 should timeout request', function (done) {
     try {
       let pingHttp = new Monitor({
         website: 'https://ragingflame.co.za/timeout',
-        interval: 0.1,
+        interval:1,
+        config: {
+          intervalUnits: 'seconds'
+        },
         httpOptions: {
           timeout: 100
         }
       });
 
       pingHttp.on('up', function (res) {
-        expect(res.statusCode).to.equal(500);
         pingHttp.stop();
         done(new Error('up - should timeout request'));
       });
 
       pingHttp.on('down', function (res) {
-        expect(res.statusCode).to.equal(500);
         pingHttp.stop();
         done(new Error('down - should timeout request'));
       });
 
       pingHttp.on('timeout', function (error, res) {
-        expect(res.statusCode).to.equal(500);
+        expect(res.statusCode).to.equal(408);
         pingHttp.stop();
+        done();
       });
 
       pingHttp.on('error', function (error, res) {
-        expect(res.statusCode).to.equal(500);
-        done();
+        pingHttp.stop();
+        done(new Error('down - should timeout request'));
       });
     }
     catch(e) {
@@ -439,7 +434,7 @@ describe('Monitor', function () {
     }
   });
 
-  it('should pass content search', function (done) {
+  it('#11 should pass content search', function (done) {
 
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/content-search',
@@ -455,9 +450,7 @@ describe('Monitor', function () {
       // check state props
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
-      expect(state.active).to.be.true;
       expect(state.isUp).to.be.true;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/content-search');
       expect(state.website).to.equal('https://ragingflame.co.za/content-search');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
@@ -481,7 +474,7 @@ describe('Monitor', function () {
     });
   });
 
-  it('should fail content search', function (done) {
+  it('#12 should fail content search', function (done) {
 
     let ping = new Monitor({
       website: 'https://ragingflame.co.za/content-search-2',
@@ -497,9 +490,7 @@ describe('Monitor', function () {
       // check state props
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
-      expect(state.active).to.be.true;
       expect(state.isUp).to.be.false;
-      expect(state.host).to.be.equal('https://ragingflame.co.za/content-search-2');
       expect(state.website).to.equal('https://ragingflame.co.za/content-search-2');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
