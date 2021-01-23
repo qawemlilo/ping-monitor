@@ -32,10 +32,10 @@ myWebsite.on(event, function(response, state) {
 - `website` <String> - Website address to be monitored
 - `port` <Integer> - Server port (optional).
 - `interval` <Integer> (defaults to 15 mins) - time interval for polling requests.
-- `units` (defaults to minutes) - interval time units - [milliseconds, seconds, minites, hours]
 - `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
 - `expect` <Object>  - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
 - `config` <Object> { intervalUnits <String> }  - configuration for your Monitor, currently supports one property, `intervalUnits`. `intervalUnits` specifies which to time unit you want your Monitor to use. There are 4 options, `milliseconds`, `seconds`, `minutes` (default), and `hours`.
+- `ignoreSSL` <Boolean> - ignore broken/expired certificates
 
 #### Expect Object 
 ```javascript
@@ -120,12 +120,10 @@ const myApi = new Monitor({
 
 - `object.id` <Integer> `null` - monitor id, useful when persistence.
 - `object.title` <String> `null` - monitor label for humans.
-- `object.active` <Boolean> `true` - flag to indicate if monitor is active.
 - `object.isUp` <Boolean> `true` - flag to indicate if monitored server is up or down.
 - `object.created_at` <Date.now()> - monitor creation date.
 - `object.isUp` <Boolean> `true` - current uptime status of the monitor.
 - `object.port` <Integer> `null` - server port.
-- `object.host` <String> `null` - server / website address.
 - `object.totalRequests` <Integer> `0` - total requests made.
 - `object.totalDownTimes` <Integer> `0` - total number of downtimes.
 - `object.lastDownTime` <Date.now()> - time of last downtime.
@@ -210,6 +208,39 @@ myMonitor.on('timeout', function (error, res) {
 
 
 ### Change log
+
+
+#### v0.6.0
+
+
+**Changes**
+ 
+ - Code refactoring
+ - Removed `active` from props (redundant)
+ - Removed `host` from props (not used)
+ - Added `ignoreSSL` to support websites with expired certificates
+
+
+```javascript
+  let ping = new Monitor({
+    website: 'https://wrong.host.badssl.com',
+    interval: 1,
+    config: {
+      intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
+    },
+    ignoreSSL: true
+  });
+
+  ping.on('up', function (res, state) {
+    console.log('Yay!! Service is up');
+  });
+  
+
+  ping.on('error', function (error, res) {
+    console.error(error);
+  });
+```
+
 
 #### v0.5.2
 
@@ -336,7 +367,6 @@ myApi.on('up', function (res, state) {
     state {
       created_at <Date.now()>
       isUp <Boolean>
-      host <String>
       port: <Integer>
       totalRequests <Integer>
       lastDownTime <Date.now()>
@@ -410,7 +440,6 @@ Most of the changes introduced in this version were introduced to support databa
       state {
         created_at <Date.now()>
         isUp <Boolean>
-        host <String>
         port: <Integer>
         totalRequests <Integer>
         lastDownTime <Date.now()>

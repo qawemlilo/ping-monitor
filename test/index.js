@@ -514,6 +514,45 @@ describe('Monitor', function () {
     });
   });
 
+  it('#13 should load broken ssl', function (done) {
+    try {
+      let pingHttp = new Monitor({
+        website: 'https://wrong.host.badssl.com',
+        interval: 300,
+        ignoreSSL: true,
+        config: {
+          intervalUnits: 'milliseconds'
+        },
+        expect: {
+          statusCode: 200
+        }
+      });
+
+      pingHttp.on('up', function (res) {
+        pingHttp.stop();
+        done();
+      });
+
+      pingHttp.on('down', function (res) {
+        pingHttp.stop();
+        done(new Error('down - should load request'));
+      });
+
+      pingHttp.on('timeout', function (error, res) {
+        pingHttp.stop();
+        done(new Error('down - should load request'));
+      });
+
+      pingHttp.on('error', function (error, res) {
+        pingHttp.stop();
+        done(new Error('down - should load request'));
+      });
+    }
+    catch(e) {
+      done();
+    }
+  });
+
   after(function (done) {
     tcpServer.close();
     done();
