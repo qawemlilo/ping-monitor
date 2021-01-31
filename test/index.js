@@ -82,7 +82,7 @@ describe('Monitor', function () {
       expect(res.statusCode).to.equal(200);
 
       // check state props
-      expect(state.id).to.be.a('null');
+      expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
       expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
@@ -122,7 +122,7 @@ describe('Monitor', function () {
       expect(res.statusCode).to.equal(200);
 
       // check state props
-      expect(state.id).to.be.a('null');
+      expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
       expect(state.website).to.equal('https://ragingflame.co.za/must-pass-1');
@@ -180,7 +180,7 @@ describe('Monitor', function () {
       expect(res.statusCode).to.equal(200);
 
       // check state props
-      expect(state.id).to.be.a('null');
+      expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
       expect(state.website).to.equal('https://ragingflame.co.za/must-pass-2');
@@ -228,7 +228,7 @@ describe('Monitor', function () {
       expect(res.statusCode).to.equal(500);
 
       // check state props
-      expect(state.id).to.be.a('null');
+      expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.false;
       expect(state.website).to.equal('https://ragingflame.co.za/must-fail');
@@ -295,7 +295,7 @@ describe('Monitor', function () {
 
       pingRedirect.on('up', function (res, state) {
         expect(res.statusCode).to.equal(301);
-        expect(state.id).to.be.a('null');
+        expect(state.id).to.be.a('string');
         expect(state.created_at).to.be.gt(0);
         expect(state.isUp).to.be.true;
         expect(state.website).to.equal('https://ragingflame.co.za/test-redirect');
@@ -448,7 +448,7 @@ describe('Monitor', function () {
       expect(res.statusCode).to.equal(200);
 
       // check state props
-      expect(state.id).to.be.a('null');
+      expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
       expect(state.website).to.equal('https://ragingflame.co.za/content-search');
@@ -488,7 +488,7 @@ describe('Monitor', function () {
       expect(res.statusCode).to.equal(500);
 
       // check state props
-      expect(state.id).to.be.a('null');
+      expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.false;
       expect(state.website).to.equal('https://ragingflame.co.za/content-search-2');
