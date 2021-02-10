@@ -209,6 +209,35 @@ myMonitor.on('timeout', function (error, res) {
 
 ### Change log
 
+#### v0.6.1
+
+
+**Changes**
+ 
+ - Changed auto id generation to optional
+
+
+```javascript
+  let ping = new Monitor({
+    website: 'https://google.com',
+    interval: 5,
+    config: {
+      intervalUnits: 'minutes',
+      generateId: false // defaults is true
+    }
+  });
+
+  ping.on('up', function (res, state) {
+    //state.id === null
+    console.log('Yay!! Google is up');
+  });
+  
+
+  ping.on('error', function (error, res) {
+    console.error(error);
+  });
+```
+
 
 #### v0.6.0
 

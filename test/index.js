@@ -27,6 +27,9 @@ describe('Monitor', function () {
       .get('/must-pass-3')
       .reply(200, 'page is up');
 
+    nock('https://ragingflame.co.za')
+      .get('/must-pass-4')
+      .reply(200, 'page is up');
 
     nock('https://ragingflame.co.za')
       .persist()
@@ -74,7 +77,8 @@ describe('Monitor', function () {
       website: 'https://ragingflame.co.za/must-pass',
       interval: 1,
       config: {
-        intervalUnits: 'seconds'
+        intervalUnits: 'seconds',
+        generateId: true
       } 
     });
 
@@ -107,6 +111,49 @@ describe('Monitor', function () {
       done(new Error(res.statusMessage));
     });
   });
+
+
+  it('#1.1 should have null id', function (done) {
+
+    let ping = new Monitor({
+      website: 'https://ragingflame.co.za/must-pass-4',
+      interval: 1,
+      config: {
+        intervalUnits: 'seconds',
+        generateId: false
+      } 
+    });
+
+    ping.on('up', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+
+      // check state props
+      expect(state.id).to.be.a('null');
+      expect(state.created_at).to.be.gt(0);
+      expect(state.isUp).to.be.true;
+      expect(state.website).to.equal('https://ragingflame.co.za/must-pass-4');
+      expect(state.address).to.be.a('null');
+      expect(state.port).to.be.a('null');
+      expect(state.interval).to.equal(1);
+      expect(state.totalRequests).to.equal(1);
+      expect(state.totalDownTimes).to.equal(0);
+      expect(state.lastRequest).to.be.gt(0);
+      expect(state.lastDownTime).to.be.a('null');
+      expect(state.title).to.be.a('string');
+
+      ping.stop();
+
+      done();
+    });
+
+    ping.on('down', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
+      ping.stop();
+      done(new Error(res.statusMessage));
+    });
+  });
+
 
   it('#2 should pass', function (done) {
 
