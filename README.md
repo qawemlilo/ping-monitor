@@ -214,7 +214,7 @@ myMonitor.on('timeout', function (error, res) {
 
 **Changes**
  
- - Changed auto id generation to optional
+ - Added auto id generation opt-out
 
 
 ```javascript
