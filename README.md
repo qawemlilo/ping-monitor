@@ -23,8 +23,8 @@ myWebsite.on(event, function(response, state) {
 
 ### Methods
 
-- `stop` - stop an active monitor 
-- `restart` - stop and start an active monitor 
+- `stop` - stop an active monitor
+- `restart` - stop and start an active monitor
 
 ### Options
 
@@ -37,7 +37,7 @@ myWebsite.on(event, function(response, state) {
 - `config` <Object> { intervalUnits <String> }  - configuration for your Monitor, currently supports one property, `intervalUnits`. `intervalUnits` specifies which to time unit you want your Monitor to use. There are 4 options, `milliseconds`, `seconds`, `minutes` (default), and `hours`.
 - `ignoreSSL` <Boolean> - ignore broken/expired certificates
 
-#### Expect Object 
+#### Expect Object
 ```javascript
 expect {
   statusCode: Integer, // http status codes
@@ -53,7 +53,7 @@ const myApi = new Monitor({
     title: 'Raging Flame',
     interval: 5,
 
-    confing: {
+    config: {
       intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
     },
 
@@ -73,9 +73,9 @@ const myApi = new Monitor({
 const myApi = new Monitor({
     website: 'http://api.ragingflame.co.za',
     title: 'Raging Flame',
-    interval: 10, 
-    
-    confing: {
+    interval: 10,
+
+    config: {
       intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
     },
 
@@ -213,7 +213,7 @@ myMonitor.on('timeout', function (error, res) {
 
 
 **Changes**
- 
+
  - Added auto id generation opt-out
 
 
@@ -231,7 +231,7 @@ myMonitor.on('timeout', function (error, res) {
     //state.id === null
     console.log('Yay!! Google is up');
   });
-  
+
 
   ping.on('error', function (error, res) {
     console.error(error);
@@ -243,7 +243,7 @@ myMonitor.on('timeout', function (error, res) {
 
 
 **Changes**
- 
+
  - Code refactoring
  - Removed `active` from props (redundant)
  - Removed `host` from props (not used)
@@ -263,7 +263,7 @@ myMonitor.on('timeout', function (error, res) {
   ping.on('up', function (res, state) {
     console.log('Yay!! Service is up');
   });
-  
+
 
   ping.on('error', function (error, res) {
     console.error(error);
@@ -290,7 +290,7 @@ myMonitor.on('timeout', function (error, res) {
   ping.on('up', function (res, state) {
     console.log('Yay!! Service is up');
   });
-  
+
 
   ping.on('error', function (error, res) {
     console.error(error);
@@ -316,7 +316,7 @@ myMonitor.on('timeout', function (error, res) {
   ping.on('up', function (res, state) {
     console.log('Yay!! Content cantains the phrase "In stock"');
   });
-  
+
 
   ping.on('error', function (error, res) {
     console.error(error);
@@ -334,8 +334,8 @@ myMonitor.on('timeout', function (error, res) {
   myMonitor.on('timeout', function (error, res) {
     console.log(error);
   });
-  
-  // also make sure that you are handling the error event 
+
+  // also make sure that you are handling the error event
   myMonitor.on('error', function (error, res) {
     console.log(error);
   });
@@ -465,7 +465,7 @@ Most of the changes introduced in this version were introduced to support databa
 
   myMonitor.on(event, function(response, state) {
     /*
-      response {...}  
+      response {...}
       state {
         created_at <Date.now()>
         isUp <Boolean>
