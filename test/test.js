@@ -622,7 +622,8 @@ describe('Utils', function() {
 
   describe('#getFormatedDate()', function() {
     it('should convert intervalUnits', function() {
-      expect(Utils.getFormatedDate()).to.include('2021');
+      const CurrentYear = new Date().getFullYear();
+      expect(Utils.getFormatedDate()).to.include(CurrentYear);
     });
   });
 
