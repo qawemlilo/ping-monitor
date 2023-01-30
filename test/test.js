@@ -59,7 +59,7 @@ describe('Monitor', function () {
       .get('/timeout')
       .delay(5000)
       .reply(200, 'Page is up');
-    
+
     nock('https://ragingflame.co.za')
       .get('/content-search')
       .reply(200, 'The quick brown fox jumps over the lazy dog');
@@ -67,7 +67,7 @@ describe('Monitor', function () {
     nock('https://ragingflame.co.za')
       .get('/content-search-2')
       .reply(200, 'The quick brown fox jumps over the lazy dog');
-      
+
     tcpServer = require('./tcpServer');
   });
 
@@ -79,11 +79,19 @@ describe('Monitor', function () {
       config: {
         intervalUnits: 'seconds',
         generateId: true
-      } 
+      }
     });
 
     ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(200);
+
+      expect(res.website).to.equal('https://ragingflame.co.za/must-pass');
+      expect(res.address).to.be.a('null');
+      expect(res.port).to.be.a('null');
+      expect(res.time).to.gt(0);
+      expect(res.responseTime).to.gt(0);
+      expect(res.responseMessage).to.be.a('string');
+      expect(res.httpResponse).to.be.an('object');
 
       // check state props
       expect(state.id).to.be.a('string');
@@ -121,7 +129,7 @@ describe('Monitor', function () {
       config: {
         intervalUnits: 'seconds',
         generateId: false
-      } 
+      }
     });
 
     ping.on('up', function (res, state) {
@@ -162,7 +170,7 @@ describe('Monitor', function () {
       interval: 300,
       config: {
         intervalUnits: 'milliseconds'
-      } 
+      }
     });
 
     ping.on('up', function (res, state) {
@@ -611,7 +619,7 @@ describe('Utils', function() {
   describe('#intervalUnits()', function() {
     it('should convert intervalUnits', function() {
       const interval = 1;
-  
+
       expect(Utils.intervalUnits(interval, 'milliseconds')).to.equal(1);
       expect(Utils.intervalUnits(interval, 'seconds')).to.equal(1000);
       expect(Utils.intervalUnits(interval, 'minutes')).to.equal(60000);

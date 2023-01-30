@@ -148,12 +148,12 @@ const myMonitor = new Monitor({
 
 
 myMonitor.on('up', function (res, state) {
-    console.log('Yay!! ' + res.website + ' is up.');
+    console.log('Yay!! ' + state.website + ' is up.');
 });
 
 
-myMonitor.on('down', function (res) {
-    console.log('Oh Snap!! ' + res.website + ' is down! ' + res.statusMessage);
+myMonitor.on('down', function (res, state) {
+    console.log('Oh Snap!! ' + state.website + ' is down! ' + state.statusMessage);
 });
 
 
@@ -182,17 +182,17 @@ const myMonitor = new Monitor({
 
 
 myMonitor.on('up', function (res, state) {
-    console.log('Yay!! ' + res.address + ':' + res.port + ' is up.');
+    console.log('Yay!! ' + state.address + ':' + state.port + ' is up.');
 });
 
 
 myMonitor.on('down', function (res, state) {
-    console.log('Oh Snap!! ' + res.address + ':' + res.port + ' is down! ');
+    console.log('Oh Snap!! ' + state.address + ':' + state.port + ' is down! ');
 });
 
 
 myMonitor.on('stop', function (res, state) {
-    console.log(res.address + ' monitor has stopped.');
+    console.log(state.address + ' monitor has stopped.');
 });
 
 

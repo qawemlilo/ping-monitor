@@ -5,7 +5,7 @@ module.exports = {
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "ecmaVersion": 2017
+        "ecmaVersion": 2018
     },
     "rules": {
         "indent": [
@@ -27,6 +27,7 @@ module.exports = {
     },
     "globals": {
         "it": "readonly",
-        "describe": "readonly"
+        "describe": "readonly",
+        "console": "readonly"
     }
 };
