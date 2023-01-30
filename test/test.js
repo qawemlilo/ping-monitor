@@ -6,7 +6,9 @@ const expect = require('chai').expect;
 const nock = require('nock');
 const Monitor = require('../lib/monitor');
 const Utils = require('../lib/utils');
+const Channel = require('./channel');
 let tcpServer = null;
+
 
 
 describe('Monitor', function () {
@@ -25,6 +27,10 @@ describe('Monitor', function () {
 
     nock('https://ragingflame.co.za')
       .get('/must-pass-3')
+      .reply(200, 'page is up');
+
+    nock('https://ragingflame.co.za')
+      .get('/must-pass-14')
       .reply(200, 'page is up');
 
     nock('https://ragingflame.co.za')
@@ -602,6 +608,32 @@ describe('Monitor', function () {
         pingHttp.stop();
         done(new Error('down - should load request'));
       });
+    }
+    catch(e) {
+      done();
+    }
+  });
+
+  it('#14 should add notification channel', function (done) {
+    try {
+      let ping = new Monitor({
+        website: 'https://ragingflame.co.za/must-pass-14',
+        interval: 1,
+        config: {
+          intervalUnits: 'seconds',
+        }
+      });
+      let channel = new Channel({});
+
+      expect(ping.addChannel).to.be.a('function');
+      expect(ping.addNotificationChannel).to.be.a('function');
+
+      ping.addChannel(channel);
+
+      expect(ping.channels.length).to.be.eq(1);
+      expect(ping.channels[0]).to.be.instanceof(Channel);
+
+      done();
     }
     catch(e) {
       done();
