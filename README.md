@@ -20,6 +20,21 @@ myWebsite.on(event, function(response, state) {
 });
 ```
 
+Alternatively, you can subscribe to the Monitor's events through a notification channel. [Click to see some demo nofitication channels](https://github.com/qawemlilo/ping-monitor-channels/tree/main/channels)
+
+```javascript
+const Monitor = require('ping-monitor');
+const SlackChannel = require('@ping-monitor/slack');
+const EmailChannel = require('@ping-monitor/email');
+
+const myWebsite = new Monitor(options);
+const slacker = new SlackChannel({...config});
+const mailer = new EmailChannel({...config});
+
+myWebsite.addNotificationChannel(slacker);
+myWebsite.addNotificationChannel(mailer);
+```
+
 
 ### Methods
 
@@ -208,6 +223,70 @@ myMonitor.on('timeout', function (error, res) {
 
 
 ### Change log
+
+#### v0.7.0
+
+
+**Changes**
+
+ - Dependencies update.
+ - Added `addNotificationChannel` method to Monitor.
+ - Added `addChannel` method to Monitor. This method is an alias of the `addNotificationChannel` method.
+
+
+```javascript
+  /*** 
+   * Channel class 
+   * methods: up, down, stop, error, timeout 
+   * properties: name
+   ***/
+  class Logger {
+
+    constructor(config = {}) {
+      // do something with the config
+    }
+
+    name = 'logger';
+
+    up(res, state) {
+      console.log(`#${this.name}: ${res.website} is up`);
+    }
+
+    down(res, state) {
+      console.log(`#${this.name}: ${res.website} is down`);
+    }
+
+    stop(res, state) {
+      console.log(`#${this.name}: ${res.website} monitor stopped`);
+    }
+
+    error(error, res) {
+      console.log(`#${this.name}: ${res.website} monitor returned an error`);
+    }
+
+    timeout(error, res) {
+      console.log(`#${this.name}: ${res.website} timed out`);
+    }
+  }
+
+
+  const ping = new Monitor({
+    website: 'https://google.com',
+    interval: 30,
+    config: {
+      intervalUnits: 'seconds',
+    }
+  });
+
+  const logger = new Logger();
+
+  ping.addNotificationChannel(logger);
+
+  // you can multiple notification channels
+  // ping.addNotificationChannel(mailer)
+  // ping.addNotificationChannel(slack)
+```
+
 
 #### v0.6.1
 
