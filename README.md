@@ -20,7 +20,7 @@ myWebsite.on(event, function(response, state) {
 });
 ```
 
-Alternatively, you can subscribe to the Monitor's events through a notification channel. [Click to see some demo nofitication channels](https://github.com/qawemlilo/ping-monitor-channels/tree/main/channels)
+Alternatively, you can subscribe to the Monitor's events through a notification channel. [Click to see some demo nofitication channels](https://github.com/qawemlilo/ping-monitor-channels/tree/main/channels).
 
 ```javascript
 const Monitor = require('ping-monitor');
@@ -40,6 +40,7 @@ myWebsite.addNotificationChannel(mailer);
 
 - `stop` - stop an active monitor
 - `restart` - stop and start an active monitor
+- `addNotificationChannel` (or `addChannel`) - adds a notification channel that subscribes to the monitor's events
 
 ### Options
 
