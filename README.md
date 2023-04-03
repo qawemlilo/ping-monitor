@@ -47,7 +47,7 @@ myWebsite.addNotificationChannel(mailer);
 - `address` <String> - Server address to be monitored
 - `protocol` <String> - (defaults to `http`) request protocol (http/s, tcp, udp)
 - `port` <Integer> - Server port (optional).
-- `interval` <Integer> (defaults to 15 mins) - time interval for polling requests.
+- `interval` <Integer> (defaults to 15) - time interval for polling requests.
 - `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
 - `expect` <Object>  { statusCode <Number>,  contentSearch <String>} - allows you define what kind of a response you expect from your endpoint. 
    - `statusCode` defines the expected http response status code.
@@ -104,7 +104,7 @@ const myApi = new Monitor({
         first_name: 'Que',
         last_name: 'Fire'
       },
-      body: 'Hello World!'
+      body: {content:'Hello World!'}
     },
     expect: {
       statusCode: 200
@@ -166,7 +166,7 @@ const myMonitor = new Monitor({
   address: 'http://www.ragingflame.co.za',
   title: 'Raging Flame',
   interval: 10 // minutes
-  //protocol: 'http' - // default
+  //protocol: 'http'
 });
 
 
@@ -180,8 +180,18 @@ myMonitor.on('down', function (res, state) {
 });
 
 
+myMonitor.on('restored', function (res, state) {
+  console.log(state.address + ' has been restore');
+});
+
+
 myMonitor.on('stop', function (res, state) {
   console.log(state.address + ' monitor has stopped.');
+});
+
+
+myMonitor.on('timeout', function (error, res) {
+  console.log(error);
 });
 
 
@@ -230,7 +240,7 @@ myMonitor.on('error', function (error, res) {
 
 
 myMonitor.on('timeout', function (error, res) {
-    console.log(error);
+  console.log(error);
 });
 ```
 
