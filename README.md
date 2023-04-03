@@ -245,6 +245,52 @@ myMonitor.on('timeout', function (error, res) {
 ```
 
 
+### UDP Example
+```javascript
+'use strict';
+
+const Monitor = require('ping-monitor');
+
+
+const myMonitor = new Monitor({
+  address: '32.13.124.139',
+  port: 8080,
+  interval: 5,
+  protocol: 'udp'
+});
+
+
+myMonitor.on('up', function (res, state) {
+  console.log('Yay!! ' + state.address + ':' + state.port + ' is up.');
+});
+
+
+myMonitor.on('down', function (res, state) {
+  console.log('Oh Snap!! ' + state.address + ':' + state.port + ' is down! ');
+});
+
+
+myMonitor.on('restored', function (res, state) {
+  console.log('Yay!! ' + state.address + ':' + state.port + ' has been restored! ');
+});
+
+
+myMonitor.on('stop', function (res, state) {
+  console.log(state.address + ' monitor has stopped.');
+});
+
+
+myMonitor.on('error', function (error, res) {
+  console.log(error);
+});
+
+
+myMonitor.on('timeout', function (error, res) {
+  console.log(error);
+});
+```
+
+
 ### Change log
 
 
