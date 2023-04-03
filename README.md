@@ -9,6 +9,41 @@ npm install ping-monitor
 ```
 
 
+### Documentation
+
+- [Uptime Event Emitter](#uptime-event-emitter)
+    - [Installation](#installation)
+    - [Documentation](#documentation)
+    - [How to use](#how-to-use)
+    - [Methods](#methods)
+    - [Options](#options)
+      - [Expect Object](#expect-object)
+    - [Emitted Events](#emitted-events)
+    - [Response object](#response-object)
+    - [State object](#state-object)
+    - [Website Example](#website-example)
+    - [TCP Example](#tcp-example)
+    - [UDP Example](#udp-example)
+    - [Change log](#change-log)
+      - [v0.8.0](#v080)
+      - [v0.7.0](#v070)
+      - [v0.6.1](#v061)
+      - [v0.6.0](#v060)
+      - [v0.5.2](#v052)
+      - [v0.5.1](#v051)
+      - [v0.5.0](#v050)
+      - [v0.4.4](#v044)
+      - [v0.4.3](#v043)
+      - [v0.4.2](#v042)
+      - [v0.4.1](#v041)
+      - [v0.4.0](#v040)
+      - [v0.3.1](#v031)
+      - [v0.3.0](#v030)
+      - [v0.2.0](#v020)
+  - [Testing](#testing)
+    - [License](#license)
+
+
 ### How to use
 ```javascript
 const Monitor = require('ping-monitor');
@@ -125,7 +160,7 @@ const myApi = new Monitor({
 
 
 
-### response object
+### Response object
 
 - `object.website` (deprecated) - website being monitored .
 - `object.address` - server address 
@@ -135,7 +170,7 @@ const myApi = new Monitor({
 - `object.responseTime` - response time in milliseconds
 - `object.httpResponse` - native http/s response object
 
-### state object
+### State object
 
 - `object.id` <Integer> `null` - monitor id, useful when persistence.
 - `object.title` <String> `null` - monitor label for humans.
