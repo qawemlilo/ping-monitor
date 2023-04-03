@@ -302,6 +302,7 @@ myMonitor.on('timeout', function (error, res) {
 
  - Added `protocol` property to the Monitor Options object
  - Added support for UDP servers. To monitor a UDP server, set the `protocol` property to `udp`
+ - Added the `restored` event which is emitted once when a server is up after beign down 
  - Depracated `website` property on the Monitor Options object. Only use `address` 
  - Refactored some code
 
