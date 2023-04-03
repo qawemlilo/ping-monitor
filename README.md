@@ -210,7 +210,8 @@ const Monitor = require('ping-monitor');
 const myMonitor = new Monitor({
   address: '162.13.124.139',
   port: 8080,
-  interval: 5 // minutes
+  interval: 5, // minutes
+  protocol: 'tcp'
 });
 
 
@@ -300,7 +301,7 @@ myMonitor.on('timeout', function (error, res) {
 **Changes**
 
  - Added `protocol` property to the Monitor Options object
- - Added support for UDP servers. To monitor a UDP server, set the `protocol` to `udp`
+ - Added support for UDP servers. To monitor a UDP server, set the `protocol` property to `udp`
  - Depracated `website` property on the Monitor Options object. Only use `address` 
  - Refactored some code
 
