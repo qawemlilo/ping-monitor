@@ -18,6 +18,7 @@ npm install ping-monitor
     - [Methods](#methods)
     - [Options](#options)
       - [Expect Object](#expect-object)
+      - [Config Object](#config-object)
     - [Emitted Events](#emitted-events)
     - [Response object](#response-object)
     - [State object](#state-object)
@@ -95,6 +96,13 @@ myWebsite.addNotificationChannel(mailer);
 expect {
   statusCode: Integer, // http status codes
   contentSearch: String
+}
+```
+
+#### Config Object
+```javascript
+config {
+  intervalUnits: String
 }
 ```
 
