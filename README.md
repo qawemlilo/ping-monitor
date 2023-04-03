@@ -45,11 +45,13 @@ myWebsite.addNotificationChannel(mailer);
 ### Options
 
 - `address` <String> - Server address to be monitored
-- `website` <String> - Website address to be monitored
+- `protocol` <String> - (defaults to `http`) request protocol (http/s, tcp, udp)
 - `port` <Integer> - Server port (optional).
 - `interval` <Integer> (defaults to 15 mins) - time interval for polling requests.
 - `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
-- `expect` <Object>  - allows you define what kind of a response you expect for your endpoint. At the moment expect accepts 1 prop (more to be added in future versions), `statusCode` a http status code.
+- `expect` <Object>  { statusCode <Number>,  contentSearch <String>} - allows you define what kind of a response you expect from your endpoint. 
+   - `statusCode` defines the expected http response status code.
+   - `contentSearch` defines a substring to be expected from the response body.
 - `config` <Object> { intervalUnits <String> }  - configuration for your Monitor, currently supports one property, `intervalUnits`. `intervalUnits` specifies which to time unit you want your Monitor to use. There are 4 options, `milliseconds`, `seconds`, `minutes` (default), and `hours`.
 - `ignoreSSL` <Boolean> - ignore broken/expired certificates
 
@@ -65,10 +67,10 @@ expect {
 
 // http Get
 const myApi = new Monitor({
-    website: 'http://api.ragingflame.co.za',
+    address: 'https://api.ragingflame.co.za',
     title: 'Raging Flame',
     interval: 5,
-
+    protocol: 'http', // http/s, tcp, udp
     config: {
       intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
     },
@@ -87,10 +89,10 @@ const myApi = new Monitor({
 
 // http Post
 const myApi = new Monitor({
-    website: 'http://api.ragingflame.co.za',
+    address: 'http://api.ragingflame.co.za',
     title: 'Raging Flame',
     interval: 10,
-
+    protocol: 'http',
     config: {
       intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
     },
@@ -114,23 +116,24 @@ const myApi = new Monitor({
 
 ### Emitted Events
 
-- `up` - All is good website is up.
-- `down` - Not good, website is down.
+- `up` - All is good server is up.
+- `down` - Not good, server is down.
 - `stop` - Fired when the monitor has stopped.
 - `error` - Fired when there's an error
 - `timeout` - Fired when the http request times out
+- `restored` - Fired server is up after being down
 
 
 
 ### response object
 
-- `object.website` - website being monitored.
-- `object.address` - server address being monitored.
-- `object.port` - server port.
-- `object.time` - (aka responseTime) request response time.
-- `object.responseMessage` -  http response code message.
-- `object.responseTime` - response time in milliseconds.
-- `object.httpResponse` - native http/s response object.
+- `object.website` (deprecated) - website being monitored .
+- `object.address` - server address 
+- `object.port` - server port
+- `object.time` - (aka responseTime) request response time
+- `object.responseMessage` -  http response code message
+- `object.responseTime` - response time in milliseconds
+- `object.httpResponse` - native http/s response object
 
 ### state object
 
@@ -138,16 +141,19 @@ const myApi = new Monitor({
 - `object.title` <String> `null` - monitor label for humans.
 - `object.isUp` <Boolean> `true` - flag to indicate if monitored server is up or down.
 - `object.created_at` <Date.now()> - monitor creation date.
-- `object.isUp` <Boolean> `true` - current uptime status of the monitor.
+- `object.isUp` <Boolean> `true` - previous uptime status of the monitor.
 - `object.port` <Integer> `null` - server port.
 - `object.totalRequests` <Integer> `0` - total requests made.
 - `object.totalDownTimes` <Integer> `0` - total number of downtimes.
 - `object.lastDownTime` <Date.now()> - time of last downtime.
 - `object.lastRequest` <Date.now()> - time of last request.
 - `object.interval` <Integer> `5` - polling interval in minutes
-- `object.website` <String> `null`  - website being monitored.
+- `object.website` <String> `null`  - (deprecated) website being monitored.
 - `object.address` <String> `null`  - server address being monitored.
 - `object.port` <Integer> `null` - server port.
+- `object.paused` <Boolean> `false` - monitor paused flag
+- `object.httpOptions` <Object> - monitor httpOptions options
+  
 
 ### Website Example
 ```javascript
@@ -157,29 +163,30 @@ const Monitor = require('ping-monitor');
 
 
 const myMonitor = new Monitor({
-    website: 'http://www.ragingflame.co.za',
-    title: 'Raging Flame',
-    interval: 10 // minutes
+  address: 'http://www.ragingflame.co.za',
+  title: 'Raging Flame',
+  interval: 10 // minutes
+  //protocol: 'http' - // default
 });
 
 
 myMonitor.on('up', function (res, state) {
-    console.log('Yay!! ' + state.website + ' is up.');
+    console.log('Yay!! ' + state.address + ' is up.');
 });
 
 
 myMonitor.on('down', function (res, state) {
-    console.log('Oh Snap!! ' + state.website + ' is down! ' + state.statusMessage);
+  console.log('Oh Snap!! ' + state.address + ' is down! ' + state.statusMessage);
 });
 
 
-myMonitor.on('stop', function (website) {
-    console.log(website + ' monitor has stopped.');
+myMonitor.on('stop', function (res, state) {
+  console.log(state.address + ' monitor has stopped.');
 });
 
 
 myMonitor.on('error', function (error) {
-    console.log(error);
+  console.log(error);
 });
 ```
 
@@ -191,29 +198,34 @@ const Monitor = require('ping-monitor');
 
 
 const myMonitor = new Monitor({
-    address: '162.13.124.139',
-    port: 8080,
-    interval: 5 // minutes
+  address: '162.13.124.139',
+  port: 8080,
+  interval: 5 // minutes
 });
 
 
 myMonitor.on('up', function (res, state) {
-    console.log('Yay!! ' + state.address + ':' + state.port + ' is up.');
+  console.log('Yay!! ' + state.address + ':' + state.port + ' is up.');
 });
 
 
 myMonitor.on('down', function (res, state) {
-    console.log('Oh Snap!! ' + state.address + ':' + state.port + ' is down! ');
+  console.log('Oh Snap!! ' + state.address + ':' + state.port + ' is down! ');
+});
+
+
+myMonitor.on('restored', function (res, state) {
+  console.log('Yay!! ' + state.address + ':' + state.port + ' has been restored! ');
 });
 
 
 myMonitor.on('stop', function (res, state) {
-    console.log(state.address + ' monitor has stopped.');
+  console.log(state.address + ' monitor has stopped.');
 });
 
 
 myMonitor.on('error', function (error, res) {
-    console.log(error);
+  console.log(error);
 });
 
 
@@ -224,6 +236,45 @@ myMonitor.on('timeout', function (error, res) {
 
 
 ### Change log
+
+
+#### v0.8.0
+
+
+**Changes**
+
+ - Added `protocol` property to the Monitor Options object
+ - Added support for UDP servers. To monitor a UDP server, set the `protocol` to `udp`
+ - Depracated `website` property on the Monitor Options object. Only use `address` 
+ - Refactored some code
+
+
+```javascript
+
+  const ping = new Monitor({
+    address: '34.22.237.1',
+    port: 1234,
+    interval: 10,
+    protocol: 'udp',
+  });
+
+  ping.on('up', function (res, state) {
+    console.log('Yay!! Service is up');
+  });
+
+  ping.on('down', function (res, state) {
+    console.log(':( Service is down!');
+  });
+
+  ping.on('restored', function (res, state) {
+    console.log('Yay!! Service has been restored');
+  });
+
+  ping.on('error', function (error, res) {
+    console.error(error);
+  });
+```
+
 
 #### v0.7.0
 
@@ -250,30 +301,35 @@ myMonitor.on('timeout', function (error, res) {
     name = 'logger';
 
     up(res, state) {
-      console.log(`#${this.name}: ${res.website} is up`);
+      console.log(`#${this.name}: ${res.address} is up`);
     }
 
     down(res, state) {
-      console.log(`#${this.name}: ${res.website} is down`);
+      console.log(`#${this.name}: ${res.address} is down`);
     }
 
     stop(res, state) {
-      console.log(`#${this.name}: ${res.website} monitor stopped`);
+      console.log(`#${this.name}: ${res.address} monitor stopped`);
     }
 
-    error(error, res) {
-      console.log(`#${this.name}: ${res.website} monitor returned an error`);
+    error(error, res, state) {
+      console.log(`#${this.name}: ${res.address} monitor returned an error`);
     }
 
-    timeout(error, res) {
-      console.log(`#${this.name}: ${res.website} timed out`);
+    timeout(error, res, state) {
+      console.log(`#${this.name}: ${res.address} timed out`);
+    }
+
+    restored(error, res, state) {
+      console.log(`#${this.name}: ${res.address} has been restored`);
     }
   }
 
 
   const ping = new Monitor({
-    website: 'https://google.com',
+    address: 'https://google.com',
     interval: 30,
+    protocol: 'http',
     config: {
       intervalUnits: 'seconds',
     }
@@ -299,8 +355,9 @@ myMonitor.on('timeout', function (error, res) {
 
 ```javascript
   let ping = new Monitor({
-    website: 'https://google.com',
+    address: 'https://google.com',
     interval: 5,
+    protocol: 'http',
     config: {
       intervalUnits: 'minutes',
       generateId: false // defaults is true
@@ -332,8 +389,9 @@ myMonitor.on('timeout', function (error, res) {
 
 ```javascript
   let ping = new Monitor({
-    website: 'https://wrong.host.badssl.com',
+    address: 'https://wrong.host.badssl.com',
     interval: 1,
+    protocol: 'http',
     config: {
       intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
     },
@@ -360,10 +418,11 @@ myMonitor.on('timeout', function (error, res) {
 
 ```javascript
   let ping = new Monitor({
-    website: 'https://webservice.com',
+    address: 'https://webservice.com',
     interval: 1,
+    protocol: 'http',
     config: {
-      intervalUnits: 'minutes' // seconds, milliseconds, minutes {default}, hours
+      intervalUnits: 'minutes'
     }
   });
 
@@ -386,8 +445,9 @@ myMonitor.on('timeout', function (error, res) {
 
 ```javascript
   let ping = new Monitor({
-    website: 'https://ecommorce-shop.com/playstation5',
-    interval: 0.1,
+    address: 'https://ecommorce-shop.com/playstation5',
+    interval: 1,
+    protocol: 'http',
     expect: {
       contentSearch: 'In stock'
     }
@@ -443,19 +503,22 @@ You can now include a body in your `httpOptions`:
 ```javascript
 // http Post
 const myApi = new Monitor({
-    website: 'http://api.ragingflame.co.za',
+    address: 'http://api.ragingflame.co.za',
     title: 'Raging Flame',
     interval: 10 // minutes
+    protocol: 'http',
 
     // new options
     httpOptions: {
       path: '/users',
       method: 'post',
       query: {
-        first_name: 'Que',
-        last_name: 'Fire'
+        type: 'customer',
       },
-      body: 'Hello World!'
+      body: {
+        name: 'Que',
+        email: 'que@test.com'  
+      }
     },
     expect: {
       statusCode: 200
@@ -467,7 +530,7 @@ myApi.on('up', function (res, state) {
     response {
       responseTime <Integer> milliseconds
       responseMessage <String> response code message
-      website <String> url being monitored.
+      address <String> url being monitored.
       address <String> server address being monitored
       port <Integer>
       httpResponse <Object> native http/s response object

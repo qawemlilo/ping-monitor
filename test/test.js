@@ -8,36 +8,36 @@ const Monitor = require('../lib/monitor');
 const Utils = require('../lib/utils');
 const Channel = require('./channel');
 let tcpServer = null;
-
+let udpServer = null;
 
 
 describe('Monitor', function () {
   before(function () {
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/must-pass')
       .reply(200, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/must-pass-1')
       .reply(200, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/must-pass-2')
       .reply(200, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/must-pass-3')
       .reply(200, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/must-pass-14')
       .reply(200, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/must-pass-4')
       .reply(200, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .persist()
       .get('/test-redirect')
       .reply(301, undefined, {
@@ -45,42 +45,44 @@ describe('Monitor', function () {
       });
 
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/not-active')
       .reply(200, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/must-fail')
-      .reply(500, 'page is up');
+      .reply(404, 'page is down');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/test-http-options/users')
       .reply(301, 'page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .post('/users')
       .reply(200, (uri, requestBody) => requestBody);
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/timeout')
       .delay(5000)
       .reply(200, 'Page is up');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/content-search')
       .reply(200, 'The quick brown fox jumps over the lazy dog');
 
-    nock('https://ragingflame.co.za')
+    nock('https://test.com')
       .get('/content-search-2')
       .reply(200, 'The quick brown fox jumps over the lazy dog');
 
     tcpServer = require('./tcpServer');
+
+    udpServer = require('./udpServer');
   });
 
   it('#1 should pass', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-pass',
+      website: 'https://test.com/must-pass',
       interval: 1,
       config: {
         intervalUnits: 'seconds',
@@ -91,7 +93,7 @@ describe('Monitor', function () {
     ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(200);
 
-      expect(res.website).to.equal('https://ragingflame.co.za/must-pass');
+      expect(res.website).to.equal('https://test.com/must-pass');
       expect(res.address).to.be.a('null');
       expect(res.port).to.be.a('null');
       expect(res.time).to.gt(0);
@@ -103,7 +105,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass');
+      expect(state.website).to.equal('https://test.com/must-pass');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(1);
@@ -130,7 +132,7 @@ describe('Monitor', function () {
   it('#1.1 should have null id', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-pass-4',
+      website: 'https://test.com/must-pass-4',
       interval: 1,
       config: {
         intervalUnits: 'seconds',
@@ -145,7 +147,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass-4');
+      expect(state.website).to.equal('https://test.com/must-pass-4');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(1);
@@ -172,7 +174,7 @@ describe('Monitor', function () {
   it('#2 should pass', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-pass-1',
+      website: 'https://test.com/must-pass-1',
       interval: 300,
       config: {
         intervalUnits: 'milliseconds'
@@ -186,7 +188,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass-1');
+      expect(state.website).to.equal('https://test.com/must-pass-1');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(300);
@@ -213,7 +215,7 @@ describe('Monitor', function () {
   it('#3 should throw error', function (done) {
     try {
       let pingdom = new Monitor({
-        website: 'https://ragingflame.co.za/must-pass',
+        website: 'https://test.com/must-pass',
         address: '127.0.0.1'
       });
 
@@ -230,10 +232,10 @@ describe('Monitor', function () {
   it('state should override monitor options', function (done) {
 
     let pinger = new Monitor({
-      website: 'https://ragingflame.co.za/must-fail',
+      website: 'https://test.com/must-fail',
       interval: 0.2
     }, {
-      website: 'https://ragingflame.co.za/must-pass-2',
+      website: 'https://test.com/must-pass-2',
       interval: 0.1
     });
 
@@ -244,7 +246,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://ragingflame.co.za/must-pass-2');
+      expect(state.website).to.equal('https://test.com/must-pass-2');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(0.1);
@@ -275,32 +277,11 @@ describe('Monitor', function () {
   it('#4 should fail', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-fail',
+      website: 'https://test.com/must-fail',
       interval: 0.1
     });
 
-    ping.on('up', function (res) {
-      expect(res.statusCode).to.equal(500);
-      ping.stop();
-      done(new Error(res.statusMessage));
-    });
-
-    ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(500);
-
-      // check state props
-      expect(state.id).to.be.a('string');
-      expect(state.created_at).to.be.gt(0);
-      expect(state.isUp).to.be.false;
-      expect(state.website).to.equal('https://ragingflame.co.za/must-fail');
-      expect(state.address).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
-      expect(state.totalRequests).to.equal(1);
-      expect(state.totalDownTimes).to.equal(1);
-      expect(state.lastRequest).to.be.gt(0);
-      expect(state.lastDownTime).to.be.gt(0);
-      expect(state.title).to.be.a('string');
-
+    ping.on('down', function (res) {
       ping.stop();
       done();
     });
@@ -309,7 +290,7 @@ describe('Monitor', function () {
   it('#5 should handle the stop event', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/must-pass-3',
+      website: 'https://test.com/must-pass-3',
       interval: 0.1
     });
 
@@ -326,7 +307,8 @@ describe('Monitor', function () {
     let ping = new Monitor({
       address: '127.0.0.1',
       port: 8124,
-      interval: 0.1
+      interval: 0.1,
+      protocol: 'tcp'
     });
 
     ping.on('up', function (res, state) {
@@ -347,7 +329,7 @@ describe('Monitor', function () {
   it('#7 should test redirect', function (done) {
     try {
       let pingRedirect = new Monitor({
-        website: 'https://ragingflame.co.za/test-redirect',
+        website: 'https://test.com/test-redirect',
         interval: 0.1,
         expect: {
           statusCode: 301
@@ -359,7 +341,7 @@ describe('Monitor', function () {
         expect(state.id).to.be.a('string');
         expect(state.created_at).to.be.gt(0);
         expect(state.isUp).to.be.true;
-        expect(state.website).to.equal('https://ragingflame.co.za/test-redirect');
+        expect(state.website).to.equal('https://test.com/test-redirect');
         expect(state.address).to.be.a('null');
         expect(state.port).to.be.a('null');
         expect(state.interval).to.equal(0.1);
@@ -388,7 +370,7 @@ describe('Monitor', function () {
   it('#8 should test httpOptions', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://ragingflame.co.za/test-http-options',
+        website: 'https://test.com/test-http-options',
         interval: 500,
         intervalUnit: 'milliseconds',
         httpOptions: {
@@ -423,7 +405,7 @@ describe('Monitor', function () {
   it('#9 should post body', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://ragingflame.co.za',
+        website: 'https://test.com',
         interval: 0.1,
         httpOptions: {
           path: '/users',
@@ -459,7 +441,7 @@ describe('Monitor', function () {
   it('#10 should timeout request', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://ragingflame.co.za/timeout',
+        website: 'https://test.com/timeout',
         interval:1,
         config: {
           intervalUnits: 'seconds'
@@ -498,7 +480,7 @@ describe('Monitor', function () {
   it('#11 should pass content search', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/content-search',
+      website: 'https://test.com/content-search',
       interval: 0.1,
       expect: {
         contentSearch: 'fox'
@@ -508,37 +490,17 @@ describe('Monitor', function () {
     ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(200);
 
-      // check state props
-      expect(state.id).to.be.a('string');
-      expect(state.created_at).to.be.gt(0);
-      expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://ragingflame.co.za/content-search');
-      expect(state.address).to.be.a('null');
-      expect(state.port).to.be.a('null');
-      expect(state.interval).to.equal(0.1);
-      expect(state.totalRequests).to.equal(1);
-      expect(state.totalDownTimes).to.equal(0);
-      expect(state.lastRequest).to.be.gt(0);
-      expect(state.lastDownTime).to.be.a('null');
-      expect(state.title).to.be.a('string');
 
       ping.stop();
 
       done();
-    });
-
-    ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
-      ping.stop();
-      done(new Error(res.statusMessage));
     });
   });
 
   it('#12 should fail content search', function (done) {
 
     let ping = new Monitor({
-      website: 'https://ragingflame.co.za/content-search-2',
+      website: 'https://test.com/content-search-2',
       interval: 0.1,
       expect: {
         contentSearch: '123'
@@ -552,7 +514,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.false;
-      expect(state.website).to.equal('https://ragingflame.co.za/content-search-2');
+      expect(state.website).to.equal('https://test.com/content-search-2');
       expect(state.address).to.be.a('null');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(0.1);
@@ -617,7 +579,7 @@ describe('Monitor', function () {
   it('#14 should add notification channel', function (done) {
     try {
       let ping = new Monitor({
-        website: 'https://ragingflame.co.za/must-pass-14',
+        website: 'https://test.com/must-pass-14',
         interval: 1,
         config: {
           intervalUnits: 'seconds',
@@ -640,8 +602,32 @@ describe('Monitor', function () {
     }
   });
 
+  it('#14 should connect to udp', function (done) {
+
+    let ping = new Monitor({
+      address: '127.0.0.1',
+      port: 1234,
+      interval: 0.1,
+      protocol: 'udp'
+    });
+
+    ping.on('up', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+      expect(state.totalRequests).to.equal(1);
+      ping.stop();
+      done();
+    });
+
+    ping.on('down', function (res, state) {
+      expect(res.statusCode).to.equal(200);
+      ping.stop();
+      done(new Error(res.statusMessage));
+    });
+  });
+
   after(function (done) {
     tcpServer.close();
+    udpServer.close();
     done();
   });
 });

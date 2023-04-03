@@ -27,6 +27,10 @@ class Channel {
   async timeout(error, res) {
     console.log(`#${this.name}`, error);
   }
+
+  async restored(res, state) {
+    console.log(`#${this.name} ${res.website} has been restored`);
+  }
 }
 
 
