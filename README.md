@@ -1,6 +1,6 @@
 # Uptime Event Emitter
 
-An uptime event emitter for http and tcp servers.
+An uptime event emitter for http, tcp, and udp servers.
 
 
 ### Installation
