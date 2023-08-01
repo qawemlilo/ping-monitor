@@ -27,7 +27,7 @@ npm install ping-monitor
     - [UDP Example](#udp-example)
     - [Change log](#change-log)
       - [v0.8.1](#v081)
-    - [Threshold Example](#threshold-example)
+        - [Threshold Example](#threshold-example)
       - [v0.8.0](#v080)
       - [v0.7.0](#v070)
       - [v0.6.1](#v061)
@@ -351,7 +351,7 @@ myMonitor.on('timeout', function (error, res) {
  - Added the `retry` event which is emitted when the monitor is retrying a failed request 
  - Moved `Monitor.isUp` mutation to before an event is emitted instead of after
   
-### Threshold Example
+##### Threshold Example
 ```javascript
 'use strict';
 
