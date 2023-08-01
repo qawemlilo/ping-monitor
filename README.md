@@ -375,7 +375,7 @@ myMonitor.on('down', function (res, state) {
 });
 
 myMonitor.on('retry', function (error, res) {
-  // emitted on every try
+  // emitted on every retry
 });
 ```
 #### v0.8.0
