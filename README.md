@@ -25,9 +25,9 @@ npm install ping-monitor
     - [Website Example](#website-example)
     - [TCP Example](#tcp-example)
     - [UDP Example](#udp-example)
-    - [Threshold Example](#threshold-example)
     - [Change log](#change-log)
       - [v0.8.1](#v081)
+    - [Threshold Example](#threshold-example)
       - [v0.8.0](#v080)
       - [v0.7.0](#v070)
       - [v0.6.1](#v061)
@@ -339,6 +339,18 @@ myMonitor.on('timeout', function (error, res) {
 });
 ```
 
+### Change log
+
+
+#### v0.8.1
+
+
+**Changes**
+
+ - Added `threshold` property to the Monitor Options. [Pull request #53](https://github.com/qawemlilo/ping-monitor/pull/53) courtesy of [@rixtrayker](https://github.com/rixtrayker)
+ - Added the `retry` event which is emitted when the monitor is retrying a failed request 
+ - Moved `Monitor.isUp` mutation to before an event is emitted instead of after
+  
 ### Threshold Example
 ```javascript
 'use strict';
@@ -366,19 +378,6 @@ myMonitor.on('retry', function (error, res) {
   // emitted on every try
 });
 ```
-
-### Change log
-
-
-#### v0.8.1
-
-
-**Changes**
-
- - Added `threshold` property to the Monitor Options. [Pull request #53](https://github.com/qawemlilo/ping-monitor/pull/53) courtesy of [@rixtrayker](https://github.com/rixtrayker)
- - Added the `retry` event which is emitted when the monitor is retrying a failed request 
- - Moved `Monitor.isUp` mutation to before an event is emitted instead of after
-  
 #### v0.8.0
 
 
