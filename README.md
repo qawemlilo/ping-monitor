@@ -25,7 +25,9 @@ npm install ping-monitor
     - [Website Example](#website-example)
     - [TCP Example](#tcp-example)
     - [UDP Example](#udp-example)
+    - [Threshold Example](#threshold-example)
     - [Change log](#change-log)
+      - [v0.8.1](#v081)
       - [v0.8.0](#v080)
       - [v0.7.0](#v070)
       - [v0.6.1](#v061)
@@ -90,6 +92,7 @@ myWebsite.addNotificationChannel(mailer);
    - `contentSearch` defines a substring to be expected from the response body.
 - `config` <Object> { intervalUnits <String> }  - configuration for your Monitor, currently supports one property, `intervalUnits`. `intervalUnits` specifies which to time unit you want your Monitor to use. There are 4 options, `milliseconds`, `seconds`, `minutes` (default), and `hours`.
 - `ignoreSSL` <Boolean> - ignore broken/expired certificates
+- `threshold` <Number> (defaults to 1) - an integer specifying the number of tries before a `down`/`error`/`timeout` event is emitted
 
 #### Expect Object
 ```javascript
@@ -165,6 +168,7 @@ const myApi = new Monitor({
 - `error` - Fired when there's an error
 - `timeout` - Fired when the http request times out
 - `restored` - Fired server is up after being down
+- `retry` - Fired when the monitor is retrying a failed request
 
 
 
@@ -173,7 +177,7 @@ const myApi = new Monitor({
 - `object.website` (deprecated) - website being monitored .
 - `object.address` - server address 
 - `object.port` - server port
-- `object.time` - (aka responseTime) request response time
+- `object.time` - (deprecated use `responseTime`) request response time
 - `object.responseMessage` -  http response code message
 - `object.responseTime` - response time in milliseconds
 - `object.httpResponse` - native http/s response object
@@ -184,7 +188,6 @@ const myApi = new Monitor({
 - `object.title` <String> `null` - monitor label for humans.
 - `object.isUp` <Boolean> `true` - flag to indicate if monitored server is up or down.
 - `object.created_at` <Date.now()> - monitor creation date.
-- `object.isUp` <Boolean> `true` - previous uptime status of the monitor.
 - `object.port` <Integer> `null` - server port.
 - `object.totalRequests` <Integer> `0` - total requests made.
 - `object.totalDownTimes` <Integer> `0` - total number of downtimes.
@@ -195,7 +198,9 @@ const myApi = new Monitor({
 - `object.address` <String> `null`  - server address being monitored.
 - `object.port` <Integer> `null` - server port.
 - `object.paused` <Boolean> `false` - monitor paused flag
-- `object.httpOptions` <Object> - monitor httpOptions options
+- `object.httpOptions` <Object> - monitor httpOptions options 
+- `object.threshold` <Number> (default to ) - an integer specifying the number of tries before a `down`/`error`/`timeout` event is emitted
+- `object.shouldAlertDown` <Boolean> `true` - flag to indicate if `down`/`error`/`timeout` events should be emitted
   
 
 ### Website Example
@@ -219,7 +224,7 @@ myMonitor.on('up', function (res, state) {
 
 
 myMonitor.on('down', function (res, state) {
-  console.log('Oh Snap!! ' + state.address + ' is down! ' + state.statusMessage);
+  console.log('Oh Snap!! ' + state.address + ' is down! ' + state.responseMessage);
 });
 
 
@@ -334,10 +339,46 @@ myMonitor.on('timeout', function (error, res) {
 });
 ```
 
+### Threshold Example
+```javascript
+'use strict';
+
+const Monitor = require('ping-monitor');
+
+
+const myMonitor = new Monitor({
+  address: 'http://www.ragingflame.co.za',
+  title: 'Raging Flame',
+  interval: 10, // minutes
+  protocol: 'http',
+  threshold: 5
+});
+
+myMonitor.on('up', function (res, state) {
+  console.log('Yay!! ' + state.address + ' is up.');
+});
+
+myMonitor.on('down', function (res, state) {
+  // emitted after 5 tries
+});
+
+myMonitor.on('retry', function (error, res) {
+  // emitted on every try
+});
+```
 
 ### Change log
 
 
+#### v0.8.1
+
+
+**Changes**
+
+ - Added `threshold` property to the Monitor Options. [Pull request #53](https://github.com/qawemlilo/ping-monitor/pull/53) courtesy of [@rixtrayker](https://github.com/rixtrayker)
+ - Added the `retry` event which is emitted when the monitor is retrying a failed request 
+ - Moved `Monitor.isUp` mutation to before an event is emitted instead of after
+  
 #### v0.8.0
 
 

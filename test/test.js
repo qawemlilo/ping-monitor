@@ -74,6 +74,21 @@ describe('Monitor', function () {
       .get('/content-search-2')
       .reply(200, 'The quick brown fox jumps over the lazy dog');
 
+    nock('https://test.com')
+      .get('/test-threshhold-retry')
+      .reply(404, 'page is down');
+
+
+    nock('https://test.com')
+      .get('/test-threshhold-reached')
+      .reply(404, 'page is down');
+
+
+    nock('https://test.com')
+      .get('/test-response-time')
+      .delay(300)
+      .reply(200, 'Page is up');
+
     tcpServer = require('./tcpServer');
 
     udpServer = require('./udpServer');
@@ -92,9 +107,7 @@ describe('Monitor', function () {
 
     ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(200);
-
-      expect(res.website).to.equal('https://test.com/must-pass');
-      expect(res.address).to.be.a('null');
+      expect(res.address).to.equal('https://test.com/must-pass');
       expect(res.port).to.be.a('null');
       expect(res.time).to.gt(0);
       expect(res.responseTime).to.gt(0);
@@ -105,8 +118,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://test.com/must-pass');
-      expect(state.address).to.be.a('null');
+      expect(state.address).to.equal('https://test.com/must-pass');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(1);
       expect(state.totalRequests).to.equal(1);
@@ -121,10 +133,8 @@ describe('Monitor', function () {
     });
 
     ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
       ping.stop();
-      done(new Error(res.statusMessage));
+      done(new Error(res.responseMessage));
     });
   });
 
@@ -147,8 +157,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('null');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://test.com/must-pass-4');
-      expect(state.address).to.be.a('null');
+      expect(state.address).to.equal('https://test.com/must-pass-4');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(1);
       expect(state.totalRequests).to.equal(1);
@@ -163,10 +172,8 @@ describe('Monitor', function () {
     });
 
     ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
       ping.stop();
-      done(new Error(res.statusMessage));
+      done(new Error(res.responseMessage));
     });
   });
 
@@ -188,8 +195,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://test.com/must-pass-1');
-      expect(state.address).to.be.a('null');
+      expect(state.address).to.equal('https://test.com/must-pass-1');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(300);
       expect(state.totalRequests).to.equal(1);
@@ -207,35 +213,18 @@ describe('Monitor', function () {
       expect(res.statusCode).to.equal(200);
       expect(state.totalRequests).to.equal(1);
       ping.stop();
-      done(new Error(res.statusMessage));
+      done(new Error(res.responseMessage));
     });
   });
 
 
-  it('#3 should throw error', function (done) {
-    try {
-      let pingdom = new Monitor({
-        website: 'https://test.com/must-pass',
-        address: '127.0.0.1'
-      });
-
-      pingdom.on('error', function (error) {
-        expect(error).to.be.an.instance.of(error);
-        done();
-      });
-    }
-    catch(e) {
-      done();
-    }
-  });
-
-  it('state should override monitor options', function (done) {
+  it('#3 state should override monitor options', function (done) {
 
     let pinger = new Monitor({
-      website: 'https://test.com/must-fail',
+      address: 'https://test.com/must-fail',
       interval: 0.2
     }, {
-      website: 'https://test.com/must-pass-2',
+      address: 'https://test.com/must-pass-2',
       interval: 0.1
     });
 
@@ -246,8 +235,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.true;
-      expect(state.website).to.equal('https://test.com/must-pass-2');
-      expect(state.address).to.be.a('null');
+      expect(state.address).to.equal('https://test.com/must-pass-2');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(0.1);
       expect(state.totalRequests).to.equal(1);
@@ -262,11 +250,8 @@ describe('Monitor', function () {
     });
 
     pinger.on('down', function (res, state) {
-
-      expect(res.statusCode).to.equal(200);
-      expect(state.totalRequests).to.equal(1);
       pinger.stop();
-      done(new Error(res.statusMessage));
+      done(new Error(res.responseMessage));
     });
 
     pinger.on('error', function (error) {
@@ -277,7 +262,7 @@ describe('Monitor', function () {
   it('#4 should fail', function (done) {
 
     let ping = new Monitor({
-      website: 'https://test.com/must-fail',
+      address: 'https://test.com/must-fail',
       interval: 0.1
     });
 
@@ -290,7 +275,7 @@ describe('Monitor', function () {
   it('#5 should handle the stop event', function (done) {
 
     let ping = new Monitor({
-      website: 'https://test.com/must-pass-3',
+      address: 'https://test.com/must-pass-3',
       interval: 0.1
     });
 
@@ -319,9 +304,8 @@ describe('Monitor', function () {
     });
 
     ping.on('down', function (res, state) {
-      expect(res.statusCode).to.equal(200);
       ping.stop();
-      done(new Error(res.statusMessage));
+      done(new Error(res.responseMessage));
     });
   });
 
@@ -329,7 +313,7 @@ describe('Monitor', function () {
   it('#7 should test redirect', function (done) {
     try {
       let pingRedirect = new Monitor({
-        website: 'https://test.com/test-redirect',
+        address: 'https://test.com/test-redirect',
         interval: 0.1,
         expect: {
           statusCode: 301
@@ -341,8 +325,7 @@ describe('Monitor', function () {
         expect(state.id).to.be.a('string');
         expect(state.created_at).to.be.gt(0);
         expect(state.isUp).to.be.true;
-        expect(state.website).to.equal('https://test.com/test-redirect');
-        expect(state.address).to.be.a('null');
+        expect(state.address).to.equal('https://test.com/test-redirect');
         expect(state.port).to.be.a('null');
         expect(state.interval).to.equal(0.1);
         expect(state.totalRequests).to.equal(1);
@@ -356,9 +339,8 @@ describe('Monitor', function () {
       });
 
       pingRedirect.on('down', function (res, state) {
-        expect(res.statusCode).to.equal(301);
         pingRedirect.stop();
-        done(new Error(res.statusMessage));
+        done(new Error(res.responseMessage));
       });
     }
     catch(e) {
@@ -370,12 +352,9 @@ describe('Monitor', function () {
   it('#8 should test httpOptions', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://test.com/test-http-options',
-        interval: 500,
+        address: 'https://test.com/test-http-options/users',
+        interval: 100,
         intervalUnit: 'milliseconds',
-        httpOptions: {
-          path: '/test-http-options/users'
-        },
         expect: {
           statusCode: 301
         }
@@ -388,9 +367,8 @@ describe('Monitor', function () {
       });
 
       pingHttp.on('down', function (res, state) {
-        expect(res.statusCode).to.equal(301);
         pingHttp.stop();
-        done(new Error(res.statusMessage));
+        done(new Error(res.responseMessage));
       });
 
       pingHttp.on('error', function (error) {
@@ -405,10 +383,9 @@ describe('Monitor', function () {
   it('#9 should post body', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://test.com',
+        address: 'https://test.com/users',
         interval: 0.1,
         httpOptions: {
-          path: '/users',
           method: 'post',
           body: 'Test'
         },
@@ -424,12 +401,13 @@ describe('Monitor', function () {
       });
 
       pingHttp.on('down', function (res) {
-        expect(res.statusCode).to.equal(200);
+        console.log(res);
         pingHttp.stop();
-        done(new Error(res.statusMessage));
+        done(new Error(res.responseMessage));
       });
 
       pingHttp.on('error', function (error) {
+        console.log(error);
         done(error);
       });
     }
@@ -441,7 +419,7 @@ describe('Monitor', function () {
   it('#10 should timeout request', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://test.com/timeout',
+        address: 'https://test.com/timeout',
         interval:1,
         config: {
           intervalUnits: 'seconds'
@@ -480,7 +458,7 @@ describe('Monitor', function () {
   it('#11 should pass content search', function (done) {
 
     let ping = new Monitor({
-      website: 'https://test.com/content-search',
+      address: 'https://test.com/content-search',
       interval: 0.1,
       expect: {
         contentSearch: 'fox'
@@ -489,10 +467,7 @@ describe('Monitor', function () {
 
     ping.on('up', function (res, state) {
       expect(res.statusCode).to.equal(200);
-
-
       ping.stop();
-
       done();
     });
   });
@@ -500,7 +475,7 @@ describe('Monitor', function () {
   it('#12 should fail content search', function (done) {
 
     let ping = new Monitor({
-      website: 'https://test.com/content-search-2',
+      address: 'https://test.com/content-search-2',
       interval: 0.1,
       expect: {
         contentSearch: '123'
@@ -514,8 +489,7 @@ describe('Monitor', function () {
       expect(state.id).to.be.a('string');
       expect(state.created_at).to.be.gt(0);
       expect(state.isUp).to.be.false;
-      expect(state.website).to.equal('https://test.com/content-search-2');
-      expect(state.address).to.be.a('null');
+      expect(state.address).to.equal('https://test.com/content-search-2');
       expect(state.port).to.be.a('null');
       expect(state.interval).to.equal(0.1);
       expect(state.totalRequests).to.equal(1);
@@ -540,7 +514,7 @@ describe('Monitor', function () {
   it('#13 should load broken ssl', function (done) {
     try {
       let pingHttp = new Monitor({
-        website: 'https://wrong.host.badssl.com',
+        address: 'https://wrong.host.badssl.com',
         interval: 300,
         ignoreSSL: true,
         config: {
@@ -579,7 +553,7 @@ describe('Monitor', function () {
   it('#14 should add notification channel', function (done) {
     try {
       let ping = new Monitor({
-        website: 'https://test.com/must-pass-14',
+        address: 'https://test.com/must-pass-14',
         interval: 1,
         config: {
           intervalUnits: 'seconds',
@@ -595,6 +569,7 @@ describe('Monitor', function () {
       expect(ping.channels.length).to.be.eq(1);
       expect(ping.channels[0]).to.be.instanceof(Channel);
 
+      ping.stop();
       done();
     }
     catch(e) {
@@ -621,7 +596,65 @@ describe('Monitor', function () {
     ping.on('down', function (res, state) {
       expect(res.statusCode).to.equal(200);
       ping.stop();
-      done(new Error(res.statusMessage));
+      done(new Error(res.responseMessage));
+    });
+  });
+
+  it('#15 should convert website to address', function (done) {
+
+    let ping = new Monitor({
+      website: 'https://test.com/login',
+      port: 1234,
+      interval: 0.1
+    });
+
+    let opts = {
+      id: 1,
+      website: 'https://random.com'
+    };
+
+    let normalisedOpts = ping.normaliseAddress(opts);
+
+    expect(normalisedOpts.address).to.equal('https://random.com');
+    expect(normalisedOpts).to.not.have.property('website');
+
+    ping.stop();
+    done();
+  });
+
+
+  it('#16 should test threshold retry', function (done) {
+
+    let ping = new Monitor({
+      address: 'https://test.com/test-threshhold-retry',
+      interval: 0.1,
+      threshold: 2
+    });
+
+    ping.on('retry', function (res, state) {
+      expect(state.retries).to.equal(1);
+      ping.stop();
+      done();
+    });
+  });
+
+
+  it('#17 should test threshold', function (done) {
+
+    let ping = new Monitor({
+      address: 'https://test.com/test-threshhold-reached',
+      interval: 0.1,
+      threshold: 2
+    }, {
+      retries: 1,
+    });
+
+    expect(ping.retries).to.equal(1);
+
+    ping.on('down', function (res, state) {
+      expect(state.retries).to.equal(0);
+      ping.stop();
+      done();
     });
   });
 
