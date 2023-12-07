@@ -26,6 +26,7 @@ npm install ping-monitor
     - [TCP Example](#tcp-example)
     - [UDP Example](#udp-example)
     - [Change log](#change-log)
+      - [v0.8.2](#v082)
       - [v0.8.1](#v081)
         - [Threshold Example](#threshold-example)
       - [v0.8.0](#v080)
@@ -340,6 +341,14 @@ myMonitor.on('timeout', function (error, res) {
 ```
 
 ### Change log
+
+
+#### v0.8.2
+
+
+**Changes**
+
+ - Added new property, `contentSearchMatches`, to the Monitor class. This property is designed to take care of any content-specific querying tasks. [Pull request #58](https://github.com/qawemlilo/ping-monitor/pull/58) courtesy of [@deferdie](https://github.com/deferdie)
 
 
 #### v0.8.1
