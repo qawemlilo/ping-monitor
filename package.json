@@ -10,11 +10,11 @@
   "scripts": {
     "start": "node app.js",
     "test": "npm run eslint && node ./node_modules/mocha/bin/mocha --exit test",
-    "eslint": "./node_modules/.bin/eslint ./lib"
+    "eslint": "eslint ./lib"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/qawemlilo/ping-monitor.git"
+    "url": "git+https://github.com/qawemlilo/ping-monitor.git"
   },
   "keywords": [
     "monitor",
