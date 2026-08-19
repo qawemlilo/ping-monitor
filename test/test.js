@@ -89,6 +89,10 @@ describe('Monitor', function () {
       .delay(300)
       .reply(200, 'Page is up');
 
+    nock('http://test.com')
+      .get('/must-pass-http')
+      .reply(200, 'page is up');
+
     tcpServer = require('./tcpServer');
 
     udpServer = require('./udpServer');
@@ -513,36 +517,45 @@ describe('Monitor', function () {
 
   it('#13 should load broken ssl', function (done) {
     try {
+      // Real round trips to this external host commonly take over a second,
+      // far longer than this suite's other (mocked) requests. A short
+      // interval would fire overlapping requests before the first settles,
+      // racing a real result against a stray retry. Use a long interval so
+      // only one request is ever in flight, and still guard done() so a
+      // stray event can never resolve the test twice.
+      let settled = false;
+      const finish = (err) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        pingHttp.stop();
+        done(err);
+      };
+
       let pingHttp = new Monitor({
         address: 'https://wrong.host.badssl.com',
-        interval: 300,
+        interval: 0.1, // minutes
         ignoreSSL: true,
-        config: {
-          intervalUnits: 'milliseconds'
-        },
         expect: {
           statusCode: 200
         }
       });
 
       pingHttp.on('up', function (res) {
-        pingHttp.stop();
-        done();
+        finish();
       });
 
       pingHttp.on('down', function (res) {
-        pingHttp.stop();
-        done(new Error('down - should load request'));
+        finish(new Error('down - should load request'));
       });
 
       pingHttp.on('timeout', function (error, res) {
-        pingHttp.stop();
-        done(new Error('down - should load request'));
+        finish(new Error('down - should load request'));
       });
 
       pingHttp.on('error', function (error, res) {
-        pingHttp.stop();
-        done(new Error('down - should load request'));
+        finish(new Error('down - should load request'));
       });
     }
     catch(e) {
@@ -575,6 +588,20 @@ describe('Monitor', function () {
     catch(e) {
       done();
     }
+  });
+
+  it('#14.1 should throw when adding a channel without a name', function () {
+    let ping = new Monitor({
+      address: 'https://test.com/must-pass-14',
+      interval: 1,
+      config: {
+        intervalUnits: 'seconds',
+      }
+    });
+
+    expect(() => ping.addChannel({})).to.throw('Missing Channel Property: name');
+
+    ping.stop();
   });
 
   it('#14 should connect to udp', function (done) {
@@ -658,10 +685,138 @@ describe('Monitor', function () {
     });
   });
 
+  it('#18 should monitor a plain http (non-tls) endpoint', function (done) {
+
+    let ping = new Monitor({
+      address: 'http://test.com/must-pass-http',
+      interval: 0.1
+    });
+
+    ping.on('up', function (res) {
+      expect(res.statusCode).to.equal(200);
+      ping.stop();
+      done();
+    });
+
+    ping.on('down', function (res) {
+      ping.stop();
+      done(new Error(res.responseMessage));
+    });
+  });
+
+  it('#19 should pause and resume monitoring', function (done) {
+
+    let ping = new Monitor({
+      address: '127.0.0.1',
+      port: 8124,
+      interval: 0.1,
+      protocol: 'tcp'
+    });
+
+    ping.once('up', function () {
+      ping.pause();
+
+      expect(ping.paused).to.be.true;
+      expect(ping.handle).to.be.a('null');
+
+      ping.resume();
+
+      expect(ping.paused).to.be.false;
+      expect(ping.handle).to.not.be.a('null');
+
+      ping.stop();
+      done();
+    });
+
+    ping.once('down', function (res, state) {
+      ping.stop();
+      done(new Error(res.responseMessage));
+    });
+  });
+
+  it('#20 should restart monitoring', function (done) {
+
+    let ping = new Monitor({
+      address: '127.0.0.1',
+      port: 8124,
+      interval: 0.1,
+      protocol: 'tcp'
+    });
+
+    ping.once('up', function () {
+      const previousHandle = ping.handle;
+      const result = ping.restart();
+
+      expect(result).to.equal(ping);
+      expect(ping.handle).to.not.equal(previousHandle);
+
+      ping.stop();
+      done();
+    });
+
+    ping.once('down', function (res, state) {
+      ping.stop();
+      done(new Error(res.responseMessage));
+    });
+  });
+
+  it('#21 should emit error for an unrecognised protocol', function (done) {
+    let ping = new Monitor({
+      address: '127.0.0.1',
+      protocol: 'ftp'
+    });
+
+    // attaching the listener after construction must still catch it,
+    // since the emit is deferred past the constructor call
+    ping.on('error', function (err) {
+      expect(err.message).to.equal('Unrecognised protocol - use http/s,tcp, or udp');
+      done();
+    });
+  });
+
+  it('#22 should fail to connect via tcp', function (done) {
+
+    let ping = new Monitor({
+      address: '127.0.0.1',
+      port: 8199, // nothing listening on this port
+      interval: 0.1,
+      protocol: 'tcp'
+    });
+
+    // a refused TCP connection carries an Error object, so monitor.js
+    // routes it to 'error', not 'down' (see respond() in lib/monitor.js)
+    ping.on('error', function (err, res, state) {
+      expect(res.statusCode).to.equal(500);
+      ping.stop();
+      done();
+    });
+
+    ping.on('up', function () {
+      ping.stop();
+      done(new Error('should not have connected'));
+    });
+  });
+
   after(function (done) {
     tcpServer.close();
     udpServer.close();
     done();
+  });
+});
+
+
+describe('MonitorResponse', function() {
+  const MonitorResponse = require('../lib/MonitorResponse');
+
+  it('should apply defaults when constructed with no data', function() {
+    const res = new MonitorResponse();
+
+    expect(res.responseTime).to.equal(0);
+    expect(res.address).to.be.a('null');
+    expect(res.port).to.be.a('null');
+    expect(res.statusCode).to.be.a('null');
+    expect(res.statusMessage).to.be.a('null');
+    expect(res.responseMessage).to.be.a('null');
   });
 });
 
@@ -675,6 +830,7 @@ describe('Utils', function() {
       expect(Utils.intervalUnits(interval, 'seconds')).to.equal(1000);
       expect(Utils.intervalUnits(interval, 'minutes')).to.equal(60000);
       expect(Utils.intervalUnits(interval, 'hours')).to.equal(3600000);
+      expect(Utils.intervalUnits(interval)).to.equal(60000); // defaults to minutes
     });
   });
 
@@ -686,9 +842,15 @@ describe('Utils', function() {
     });
   });
 
+
+  describe('#nanoToSecongs()', function() {
+    it('should convert nanoseconds to seconds', function() {
+      expect(Utils.nanoToSecongs(1e9)).to.equal(1);
+      expect(Utils.nanoToSecongs(2.5e9)).to.equal(2);
+    });
+  });
+
   after(function (done) {
     done();
-    process.exit();
   });
 });
-

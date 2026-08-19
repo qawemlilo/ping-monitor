@@ -19,6 +19,7 @@ npm install ping-monitor
     - [Options](#options)
       - [Expect Object](#expect-object)
       - [Config Object](#config-object)
+    - [Restoring a persisted monitor](#restoring-a-persisted-monitor)
     - [Emitted Events](#emitted-events)
     - [Response object](#response-object)
     - [State object](#state-object)
@@ -26,6 +27,7 @@ npm install ping-monitor
     - [TCP Example](#tcp-example)
     - [UDP Example](#udp-example)
     - [Change log](#change-log)
+      - [v0.9.0](#v090)
       - [v0.8.2](#v082)
       - [v0.8.1](#v081)
         - [Threshold Example](#threshold-example)
@@ -74,25 +76,31 @@ myWebsite.addNotificationChannel(slacker);
 myWebsite.addNotificationChannel(mailer);
 ```
 
+Each channel must expose a `name` property (used to de-duplicate channels) — `addNotificationChannel`/`addChannel` throws if it's missing. See the [v0.7.0 channel example](#v070) for the full channel method list (`up`, `down`, `stop`, `error`, `timeout`, `restored`).
+
 
 ### Methods
 
 - `stop` - stop an active monitor
+- `pause` - stop an active monitor and flag it as paused (`state.paused`)
+- `resume` (or `unpause`) - resume a paused monitor
 - `restart` - stop and start an active monitor
-- `addNotificationChannel` (or `addChannel`) - adds a notification channel that subscribes to the monitor's events
+- `getState` - returns a snapshot of the monitor's current [state object](#state-object)
+- `addNotificationChannel` (or `addChannel`) - adds a notification channel that subscribes to the monitor's events. The channel must have a `name` property, or this throws.
 
 ### Options
 
 - `address` <String> - Server address to be monitored
-- `protocol` <String> - (defaults to `http`) request protocol (http/s, tcp, udp)
+- `title` <String> - a human-readable label for your monitor, echoed back on the `state` object.
+- `protocol` <String> - (defaults to `http`) request protocol (http/s, tcp, udp). An unrecognised value emits an `error` event (asynchronously, so attach your `error` listener right after construction).
 - `port` <Integer> - Server port (optional).
 - `interval` <Integer> (defaults to 15) - time interval for polling requests.
 - `httpOptions` <Object> - allows you to define your http/s request with more control. A full list of the options can be found here: [https://nodejs.org/api/http.html#http_http_request_url_options_callback](https://nodejs.org/api/http.html#http_http_request_url_options_callback)
 - `expect` <Object>  { statusCode <Number>,  contentSearch <String>} - allows you define what kind of a response you expect from your endpoint. 
    - `statusCode` defines the expected http response status code.
    - `contentSearch` defines a substring to be expected from the response body.
-- `config` <Object> { intervalUnits <String> }  - configuration for your Monitor, currently supports one property, `intervalUnits`. `intervalUnits` specifies which to time unit you want your Monitor to use. There are 4 options, `milliseconds`, `seconds`, `minutes` (default), and `hours`.
-- `ignoreSSL` <Boolean> - ignore broken/expired certificates
+- `config` <Object> { intervalUnits <String>, generateId <Boolean> }  - configuration for your Monitor.
+- `ignoreSSL` <Boolean> - disables TLS certificate/hostname verification entirely (e.g. for broken, expired, or self-signed certs). Only use against endpoints you trust, since this also removes protection against MITM attacks.
 - `threshold` <Number> (defaults to 1) - an integer specifying the number of tries before a `down`/`error`/`timeout` event is emitted
 
 #### Expect Object
@@ -106,8 +114,33 @@ expect {
 #### Config Object
 ```javascript
 config {
-  intervalUnits: String
+  intervalUnits: String, // milliseconds, seconds, minutes {default}, hours
+  generateId: Boolean // defaults to true - set false to opt out of auto id generation
 }
+```
+
+### Restoring a persisted monitor
+
+The `Monitor` constructor takes an optional second argument, a previously saved `state` object, which takes priority over the first `options` argument. This is meant for persisting monitors (e.g. to a database) and recreating them later without losing their `id`, counters, or `created_at` timestamp.
+
+```javascript
+const myMonitor = new Monitor({
+  address: 'https://api.ragingflame.co.za'
+});
+
+myMonitor.on('up', function (res, state) {
+  // save `state` (it includes `state.id`) to your database of choice
+  db.save(state);
+});
+```
+
+```javascript
+// ...later, e.g. after a process restart
+const savedState = db.find(id);
+
+const myMonitor = new Monitor({
+  address: 'https://api.ragingflame.co.za'
+}, savedState);
 ```
 
 ```javascript
@@ -179,9 +212,11 @@ const myApi = new Monitor({
 - `object.address` - server address 
 - `object.port` - server port
 - `object.time` - (deprecated use `responseTime`) request response time
+- `object.statusCode` <Number> - http status code (or `500`/`408` for connection errors/timeouts)
+- `object.statusMessage` - http response code message (alias of `responseMessage`)
 - `object.responseMessage` -  http response code message
 - `object.responseTime` - response time in milliseconds
-- `object.httpResponse` - native http/s response object
+- `object.httpResponse` - native http/s response object (only present for http/s monitors)
 
 ### State object
 
@@ -189,7 +224,6 @@ const myApi = new Monitor({
 - `object.title` <String> `null` - monitor label for humans.
 - `object.isUp` <Boolean> `true` - flag to indicate if monitored server is up or down.
 - `object.created_at` <Date.now()> - monitor creation date.
-- `object.port` <Integer> `null` - server port.
 - `object.totalRequests` <Integer> `0` - total requests made.
 - `object.totalDownTimes` <Integer> `0` - total number of downtimes.
 - `object.lastDownTime` <Date.now()> - time of last downtime.
@@ -198,10 +232,16 @@ const myApi = new Monitor({
 - `object.website` <String> `null`  - (deprecated) website being monitored.
 - `object.address` <String> `null`  - server address being monitored.
 - `object.port` <Integer> `null` - server port.
+- `object.protocol` <String> `http` - request protocol (http/s, tcp, udp).
 - `object.paused` <Boolean> `false` - monitor paused flag
 - `object.httpOptions` <Object> - monitor httpOptions options 
-- `object.threshold` <Number> (default to ) - an integer specifying the number of tries before a `down`/`error`/`timeout` event is emitted
+- `object.ignoreSSL` <Boolean> `false` - see the `ignoreSSL` option above.
+- `object.expect` <Object> - see the [Expect Object](#expect-object) above.
+- `object.config` <Object> - see the [Config Object](#config-object) above.
+- `object.threshold` <Number> `1` - an integer specifying the number of tries before a `down`/`error`/`timeout` event is emitted
+- `object.retries` <Number> `0` - current retry count towards `threshold`, resets once a monitor is up or `threshold` is reached.
 - `object.shouldAlertDown` <Boolean> `true` - flag to indicate if `down`/`error`/`timeout` events should be emitted
+- `object.contentSearchMatches` <Boolean> `null` - whether the last response matched `expect.contentSearch`, when configured.
   
 
 ### Website Example
@@ -343,6 +383,20 @@ myMonitor.on('timeout', function (error, res) {
 ### Change log
 
 
+#### v0.9.0
+
+
+**Changes**
+
+ - Fixed: an unrecognised `protocol` option now emits the `error` event asynchronously, after the constructor returns, instead of throwing synchronously from inside `new Monitor(...)`. Previously this meant the documented `.on('error', ...)` pattern could never actually catch it, since there was no chance to attach the listener before it threw.
+ - Documentation: added the missing `title` and `config.generateId` options, the `pause`/`resume`/`getState` methods, the `statusCode`/`statusMessage` response properties, and several missing `state` object properties (`retries`, `ignoreSSL`, `expect`, `config`, `protocol`, `contentSearchMatches`).
+ - Documentation: added a [Restoring a persisted monitor](#restoring-a-persisted-monitor) section covering the constructor's second `state` argument.
+ - Documentation: clarified that `ignoreSSL` disables TLS hostname verification entirely, not just tolerance for broken/expired certs.
+ - Improved test coverage from ~92% to ~98% (statements), covering `pause`/`resume`/`restart`, unrecognised protocols, TCP connection failures, and plain `http://` monitoring, and fixed a flaky SSL test.
+ - Package hygiene: added a `files` field so only `app.js`/`lib` are published, fixed the stale `repository.url`, removed an unused `engines.npm` constraint, and updated CI to a current Node LTS.
+ - Dev Dependencies update.
+
+
 #### v0.8.2
 
 
@@ -439,7 +493,7 @@ myMonitor.on('retry', function (error, res) {
 ```javascript
   /*** 
    * Channel class 
-   * methods: up, down, stop, error, timeout 
+   * methods: up, down, stop, error, timeout, restored, retry
    * properties: name
    ***/
   class Logger {
@@ -472,6 +526,10 @@ myMonitor.on('retry', function (error, res) {
 
     restored(error, res, state) {
       console.log(`#${this.name}: ${res.address} has been restored`);
+    }
+
+    retry(error, res, state) {
+      console.log(`#${this.name}: ${res.address} retrying (${state.retries}/${state.threshold})`);
     }
   }
 
